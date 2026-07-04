@@ -1,0 +1,137 @@
+{
+  "$comment": "DADM — Catálogos maestros v1.2. Pueblan los dropdowns del front y son la fuente de verdad de los enums de adr.schema.json y rfc.schema.json. Las secciones/subsecciones reflejan el formato original de los ADR/RFC vigentes (base: ADR-004/007/008, RFC-0001/0003). IMPORTANTE: los flags obligatoria/recomendada son CONFIGURACIÓN editable por administradores de DADM (no constraints del schema): pueden cambiarse en caliente y se pueden agregar apartados nuevos (se almacenan como codigo 'custom' con título fijo, por lo que ningún cambio de configuración rompe documentos existentes ni el renderer de exportación).",
+  "version": "1.2.0",
+  "estados_adr": [
+    { "codigo": "borrador",     "etiqueta": "Borrador",     "transiciones": ["en_revision"] },
+    { "codigo": "en_revision",  "etiqueta": "En revisión",  "transiciones": ["aprobado", "rechazado", "borrador"] },
+    { "codigo": "aprobado",     "etiqueta": "Aprobado",     "transiciones": ["reemplazado", "obsoleto"] },
+    { "codigo": "rechazado",    "etiqueta": "Rechazado",    "transiciones": [] },
+    { "codigo": "reemplazado",  "etiqueta": "Reemplazado",  "transiciones": [], "requiere_relacion": "reemplazado_por" },
+    { "codigo": "obsoleto",     "etiqueta": "Obsoleto",     "transiciones": [] }
+  ],
+  "estados_rfc": [
+    { "codigo": "borrador",       "etiqueta": "Borrador",        "transiciones": ["en_comentarios"] },
+    { "codigo": "en_comentarios", "etiqueta": "En comentarios",  "transiciones": ["cerrado"], "requiere": "ventana_comentarios" },
+    { "codigo": "cerrado",        "etiqueta": "Cerrado",         "transiciones": [], "requiere": "cierre.resolucion y todos los comentarios resueltos" }
+  ],
+  "resoluciones_rfc": [
+    { "codigo": "aceptado",             "etiqueta": "Aceptado sin cambios",  "genera_adr": true },
+    { "codigo": "aceptado_con_cambios", "etiqueta": "Aceptado con cambios",  "genera_adr": true },
+    { "codigo": "rechazado",            "etiqueta": "Rechazado",             "genera_adr": false },
+    { "codigo": "pospuesto",            "etiqueta": "Pospuesto",             "genera_adr": false }
+  ],
+  "ambitos": [
+    { "codigo": "estandares_datos",       "etiqueta": "Estándares de Datos" },
+    { "codigo": "arquitectura_logica",    "etiqueta": "Arquitectura Lógica (Data Mesh)" },
+    { "codigo": "implementacion_fisica",  "etiqueta": "Implementación Física (Medallion / plataforma)" },
+    { "codigo": "plataforma",             "etiqueta": "Plataforma / Infraestructura" },
+    { "codigo": "seguridad_dato",         "etiqueta": "Seguridad del Dato / Accesos" },
+    { "codigo": "gobierno",               "etiqueta": "Gobierno de Datos / Calidad" },
+    { "codigo": "forma_de_trabajo",       "etiqueta": "Forma de trabajo / Procesos" }
+  ],
+  "tipos_relacion": [
+    { "codigo": "deriva_de",       "etiqueta": "Deriva de",        "aplica_a": ["adr"],        "destino": ["rfc"] },
+    { "codigo": "adr_resultante",  "etiqueta": "ADR resultante",   "aplica_a": ["rfc"],        "destino": ["adr"] },
+    { "codigo": "reemplaza_a",     "etiqueta": "Reemplaza a",      "aplica_a": ["adr"],        "destino": ["adr"] },
+    { "codigo": "reemplazado_por", "etiqueta": "Reemplazado por",  "aplica_a": ["adr"],        "destino": ["adr"], "inversa_de": "reemplaza_a" },
+    { "codigo": "relacionado_con", "etiqueta": "Relacionado con",  "aplica_a": ["adr", "rfc"], "destino": ["adr", "rfc", "hld", "tsr", "externo"] }
+  ],
+  "objetos_simples": [
+    { "codigo": "texto",   "etiqueta": "Texto enriquecido" },
+    { "codigo": "callout", "etiqueta": "Callout / Cita destacada", "estilos": ["info", "decision", "advertencia", "cita"] },
+    { "codigo": "codigo",  "etiqueta": "Bloque de código" },
+    { "codigo": "imagen",  "etiqueta": "Imagen / Diagrama" }
+  ],
+  "objetos_complejos": [
+    { "codigo": "tabla_libre",  "etiqueta": "Tabla libre (n×m, columnas editables)" },
+    { "codigo": "tabla_tipada", "etiqueta": "Tabla tipada (estructura predefinida del catálogo)", "plantillas": "ver tablas_tipadas" }
+  ],
+  "objetos_autogestionados": {
+    "$comment": "No son bloques del cuerpo: los administra DADM y se renderizan al exportar.",
+    "lista": ["historial_cambios", "workflow_aprobacion (ADR)", "registro_comentarios (RFC)", "cierre_rfc"]
+  },
+  "tablas_tipadas": [
+    { "codigo": "opciones_evaluadas", "columnas": ["Opción", "A favor", "En contra", "Riesgo principal"] },
+    { "codigo": "comparativa",        "columnas": ["Criterio", "Opción A", "Opción B", "Opción C"], "columnas_dinamicas": true },
+    { "codigo": "riesgos",            "columnas": ["Riesgo", "Probabilidad", "Impacto", "Mitigación"], "dominios": { "Probabilidad": ["Baja", "Media", "Alta"], "Impacto": ["Bajo", "Medio", "Alto"] } },
+    { "codigo": "glosario",           "columnas": ["Término", "Definición"] },
+    { "codigo": "raci",               "columnas": ["Actividad", "R", "A", "C", "I"], "columnas_dinamicas": true },
+    { "codigo": "cronograma",         "columnas": ["Hito", "Fecha", "Responsable"] },
+    { "codigo": "matriz_asignacion",  "columnas": ["Área / Permiso", "Rol 1", "Rol 2"], "columnas_dinamicas": true, "$comment": "Estilo RFC-0001: áreas contra roles/permisos por ambiente" },
+    { "codigo": "stakeholders",       "columnas": ["Área / Rol", "Tipo de revisión", "Estado", "Comentarios"], "dominios": { "Tipo de revisión": ["Requerida", "Opcional"], "Estado": ["Pendiente", "Revisado"] } }
+  ],
+  "secciones_adr": [
+    { "codigo": "contexto", "etiqueta": "Contexto", "obligatoria": true, "orden": 1,
+      "subsecciones": [
+        { "codigo": "antecedentes", "etiqueta": "Antecedentes", "opcional": true },
+        { "codigo": "drivers", "etiqueta": "Drivers de la decisión", "recomendada": true }
+      ] },
+    { "codigo": "opciones_evaluadas", "etiqueta": "Opciones Evaluadas", "obligatoria": false, "orden": 2, "recomendada": true,
+      "subsecciones": [
+        { "codigo": "opcion_detalle", "etiqueta": "Opción N — detalle (Descripción / Pros / Contras / Riesgos)", "opcional": true, "multiple": true },
+        { "codigo": "comparativa", "etiqueta": "Comparativa", "opcional": true }
+      ] },
+    { "codigo": "decision", "etiqueta": "Decisión", "obligatoria": true, "orden": 3,
+      "subsecciones": [
+        { "codigo": "justificacion", "etiqueta": "Justificación", "recomendada": true },
+        { "codigo": "alcance", "etiqueta": "Alcance de la decisión (aplica a / no aplica a / vigencia)", "recomendada": true }
+      ] },
+    { "codigo": "consecuencias", "etiqueta": "Consecuencias", "obligatoria": true, "orden": 4,
+      "subsecciones": [
+        { "codigo": "positivas", "etiqueta": "Positivas" },
+        { "codigo": "negativas_tradeoffs", "etiqueta": "Negativas / Trade-offs" },
+        { "codigo": "riesgos_remanentes", "etiqueta": "Riesgos remanentes" },
+        { "codigo": "impactos", "etiqueta": "Impactos en otros componentes", "opcional": true }
+      ] },
+    { "codigo": "implementacion", "etiqueta": "Implementación", "obligatoria": false, "orden": 5,
+      "subsecciones": [
+        { "codigo": "plan", "etiqueta": "Plan" },
+        { "codigo": "criterios_aceptacion", "etiqueta": "Criterios de aceptación" }
+      ] },
+    { "codigo": "referencias", "etiqueta": "Referencias y Bibliografía", "obligatoria": false, "orden": 6, "recomendada": true },
+    { "codigo": "glosario", "etiqueta": "Glosario", "obligatoria": false, "orden": 7 },
+    { "codigo": "anexo", "etiqueta": "Anexo", "obligatoria": false, "orden": 8, "multiple": true },
+    { "codigo": "custom", "etiqueta": "Sección personalizada", "obligatoria": false, "orden": 9, "multiple": true }
+  ],
+  "secciones_rfc": [
+    { "codigo": "resumen_ejecutivo", "etiqueta": "Resumen Ejecutivo", "obligatoria": true, "orden": 1,
+      "$comment": "Cierra siempre con «Se pide al lector: …»" },
+    { "codigo": "problema_motivacion", "etiqueta": "Problema / Motivación", "obligatoria": true, "orden": 2,
+      "subsecciones": [
+        { "codigo": "estado_actual", "etiqueta": "Estado actual" },
+        { "codigo": "por_que_cambiar", "etiqueta": "Por qué cambiar" }
+      ] },
+    { "codigo": "propuesta", "etiqueta": "Propuesta", "obligatoria": true, "orden": 3,
+      "subsecciones": [
+        { "codigo": "vision_general", "etiqueta": "Visión general" },
+        { "codigo": "diseno_propuesto", "etiqueta": "Diseño propuesto" },
+        { "codigo": "cambios_vs_actual", "etiqueta": "Cambios respecto al estado actual" },
+        { "codigo": "compatibilidad_migracion", "etiqueta": "Compatibilidad / Migración", "opcional": true }
+      ] },
+    { "codigo": "alternativas", "etiqueta": "Alternativas Consideradas", "obligatoria": true, "orden": 4,
+      "subsecciones": [
+        { "codigo": "alternativa", "etiqueta": "Alternativa N (descripción / pros / contras / razón del descarte)", "multiple": true },
+        { "codigo": "no_hacer_nada", "etiqueta": "No hacer nada" }
+      ] },
+    { "codigo": "trade_offs", "etiqueta": "Trade-offs e Impactos", "obligatoria": false, "orden": 5, "recomendada": true,
+      "subsecciones": [
+        { "codigo": "tecnico", "etiqueta": "Impacto técnico", "opcional": true },
+        { "codigo": "organizacional", "etiqueta": "Impacto organizacional", "opcional": true },
+        { "codigo": "otros_sistemas", "etiqueta": "Impacto en otros Data Products / sistemas", "opcional": true },
+        { "codigo": "costos", "etiqueta": "Impacto en costos", "opcional": true },
+        { "codigo": "gobierno_compliance", "etiqueta": "Impacto en gobierno y compliance", "opcional": true }
+      ] },
+    { "codigo": "riesgos", "etiqueta": "Riesgos", "obligatoria": false, "orden": 6, "recomendada": true },
+    { "codigo": "cuestiones_abiertas", "etiqueta": "Cuestiones Abiertas", "obligatoria": false, "orden": 7 },
+    { "codigo": "fuera_de_alcance", "etiqueta": "Cuestiones Derivadas (fuera de alcance)", "obligatoria": false, "orden": 8 },
+    { "codigo": "cronograma", "etiqueta": "Plan de Revisión / Cronograma", "obligatoria": false, "orden": 9 },
+    { "codigo": "stakeholders_revisores", "etiqueta": "Stakeholders y Revisores", "obligatoria": false, "orden": 10 },
+    { "codigo": "referencias", "etiqueta": "Referencias", "obligatoria": false, "orden": 11, "recomendada": true },
+    { "codigo": "anexo", "etiqueta": "Anexo", "obligatoria": false, "orden": 12, "multiple": true },
+    { "codigo": "custom", "etiqueta": "Sección personalizada", "obligatoria": false, "orden": 13, "multiple": true }
+  ],
+  "tipos_comentario_rfc": ["sugerencia", "objecion", "pregunta", "aclaracion"],
+  "resoluciones_comentario": ["aceptado", "rechazado", "pospuesto", "aclarado"],
+  "decisiones_aprobacion": ["pendiente", "aprobado", "rechazado"],
+  "tipos_revision_rfc": ["requerida", "opcional"]
+}

@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dadm.bancogalicia.com.ar/schemas/adr/1.0.0",
+  "title": "ADR — Architecture Decision Record (DADM)",
+  "description": "Documento ADR de Arquitectura Data, Banco Galicia. Núcleo obligatorio + secciones opcionales tipadas + bloques libres. Los campos marcados readOnly los completa DADM, nunca el usuario.",
+  "type": "object",
+  "required": ["id", "tipo", "titulo", "estado", "autores", "decisores", "ambito", "fecha_creacion", "cuerpo"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^ADR-\\d{3}$", "readOnly": true, "description": "Correlativo asignado por DADM. Ej: ADR-009" },
+    "tipo": { "const": "adr" },
+    "titulo": { "type": "string", "minLength": 10, "maxLength": 200 },
+    "descripcion_corta": { "type": "string", "maxLength": 300, "description": "Bajada de una o dos líneas. Se muestra en listados. Opcional recomendado." },
+    "estado": { "type": "string", "enum": ["borrador", "en_revision", "aprobado", "rechazado", "reemplazado", "obsoleto"], "default": "borrador", "description": "Transiciones válidas en catalogos.json. Solo DADM ejecuta transiciones." },
+    "ambito": { "type": "string", "enum": ["estandares_datos", "arquitectura_logica", "implementacion_fisica", "plataforma", "seguridad_dato", "gobierno", "forma_de_trabajo"] },
+    "autores": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/persona" } },
+    "decisores": {
+      "type": "array", "minItems": 1,
+      "description": "Quiénes aprueban. Su decisión se registra en workflow_aprobacion.",
+      "items": { "$ref": "#/$defs/persona" }
+    },
+    "nota_alcance": { "type": "string", "description": "Qué fija y qué NO fija este ADR. Opcional." },
+    "tags": { "type": "array", "items": { "type": "string", "pattern": "^[a-z0-9-]+$" }, "uniqueItems": true },
+    "relaciones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["tipo", "destino"],
+        "properties": {
+          "tipo": { "type": "string", "enum": ["deriva_de", "reemplaza_a", "reemplazado_por", "relacionado_con"] },
+          "destino": { "type": "string", "description": "ID del documento destino (ADR-NNN, RFC-NNNN, HLD-NNNN, TSR-NNNN) o URL externa" },
+          "nota": { "type": "string" }
+        }
+      }
+    },
+    "fecha_creacion": { "type": "string", "format": "date", "readOnly": true },
+    "fecha_actualizacion": { "type": "string", "format": "date", "readOnly": true },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+$", "readOnly": true, "description": "Derivada del historial. Borradores 0.x; primera aprobación = 1.0" },
+    "historial": {
+      "type": "array", "readOnly": true,
+      "description": "Autogenerado: cada publicación pide 'motivo del cambio' y agrega una fila.",
+      "items": {
+        "type": "object",
+        "required": ["version", "fecha", "autor", "cambio"],
+        "properties": {
+          "version": { "type": "string" },
+          "fecha": { "type": "string", "format": "date" },
+          "autor": { "type": "string" },
+          "cambio": { "type": "string" }
+        }
+      }
+    },
+    "workflow_aprobacion": {
+      "type": "array", "readOnly": true,
+      "description": "Reemplaza la tabla de firmas: una entrada por decisor, con timestamp.",
+      "items": {
+        "type": "object",
+        "required": ["decisor", "decision"],
+        "properties": {
+          "decisor": { "$ref": "#/$defs/persona" },
+          "decision": { "type": "string", "enum": ["pendiente", "aprobado", "rechazado"] },
+          "fecha": { "type": "string", "format": "date-time" },
+          "comentario": { "type": "string" }
+        }
+      }
+    },
+    "cuerpo": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Secciones ordenadas. Qué secciones son obligatorias NO se fija en este schema: lo define la configuración vigente en catalogos.json (editable por administradores de DADM). La app valida la presencia de las obligatorias al salir del estado borrador. Default de fábrica: contexto, decision, consecuencias.",
+      "items": { "$ref": "#/$defs/seccion" }
+    }
+  },
+  "$defs": {
+    "persona": {
+      "type": "object",
+      "required": ["nombre"],
+      "properties": {
+        "nombre": { "type": "string" },
+        "rol": { "type": "string", "description": "Ej: Architect Lead, Data Architect" },
+        "equipo": { "type": "string", "description": "Ej: Arquitectura Data, Gobierno de Datos" }
+      }
+    },
+    "seccion": {
+      "type": "object",
+      "required": ["codigo", "bloques"],
+      "properties": {
+        "codigo": { "type": "string", "enum": ["contexto", "opciones_evaluadas", "decision", "consecuencias", "implementacion", "referencias", "glosario", "anexo", "custom"] },
+        "titulo": { "type": "string", "description": "Obligatorio solo si codigo=custom o anexo; para el resto DADM usa la etiqueta del catálogo" },
+        "bloques": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/bloque" } },
+        "subsecciones": {
+          "type": "array",
+          "description": "Subsecciones de la sección (ej: 1.1 Antecedentes, 3.1 Justificación). Las sugeridas por sección están en catalogos.json; también pueden ser libres.",
+          "items": { "$ref": "#/$defs/subseccion" }
+        }
+      },
+      "if": { "properties": { "codigo": { "enum": ["custom", "anexo"] } } },
+      "then": { "required": ["codigo", "titulo", "bloques"] }
+    },
+    "subseccion": {
+      "type": "object",
+      "required": ["titulo", "bloques"],
+      "properties": {
+        "codigo": { "type": "string", "description": "Código del catálogo si es una subsección sugerida; ausente si es libre" },
+        "titulo": { "type": "string" },
+        "bloques": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/bloque" } }
+      }
+    },
+    "bloque": {
+      "type": "object",
+      "required": ["tipo"],
+      "oneOf": [
+        {
+          "properties": { "tipo": { "const": "texto" }, "contenido": { "type": "string", "description": "Markdown/rich text" } },
+          "required": ["tipo", "contenido"]
+        },
+        {
+          "properties": {
+            "tipo": { "const": "tabla_libre" },
+            "encabezados": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+            "filas": { "type": "array", "items": { "type": "array", "items": { "type": "string" } } },
+            "titulo": { "type": "string" }
+          },
+          "required": ["tipo", "encabezados", "filas"]
+        },
+        {
+          "properties": {
+            "tipo": { "const": "tabla_tipada" },
+            "plantilla": { "type": "string", "enum": ["opciones_evaluadas", "comparativa", "riesgos", "glosario", "raci", "cronograma", "matriz_asignacion", "stakeholders"] },
+            "filas": { "type": "array", "items": { "type": "object", "additionalProperties": { "type": "string" } } }
+          },
+          "required": ["tipo", "plantilla", "filas"]
+        },
+        {
+          "properties": {
+            "tipo": { "const": "imagen" },
+            "recurso": { "type": "string", "description": "ID o URL del recurso en DADM" },
+            "epigrafe": { "type": "string" }
+          },
+          "required": ["tipo", "recurso"]
+        },
+        {
+          "properties": {
+            "tipo": { "const": "codigo" },
+            "lenguaje": { "type": "string", "default": "sql" },
+            "contenido": { "type": "string" }
+          },
+          "required": ["tipo", "contenido"]
+        },
+        {
+          "properties": {
+            "tipo": { "const": "callout" },
+            "estilo": { "type": "string", "enum": ["info", "decision", "advertencia", "cita"], "default": "info" },
+            "contenido": { "type": "string" }
+          },
+          "required": ["tipo", "contenido"]
+        }
+      ]
+    }
+  }
+}

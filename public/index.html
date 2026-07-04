@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DADM — Data Architect Document Manager</title>
+<style>
+  :root{
+    --naranja:#E86A10; --naranja-suave:#FDEADA; --azul:#2E75B6; --azul-suave:#DEEBF7;
+    --gris:#7F7F7F; --borde:#D9D9D9; --fondo:#F5F4F2; --carta:#FFFFFF; --tinta:#262626;
+    --verde:#2E7D32; --rojo:#C0392B;
+  }
+  *{box-sizing:border-box; margin:0}
+  body{font-family:-apple-system,"Segoe UI",Arial,sans-serif; background:var(--fondo); color:var(--tinta); font-size:14px}
+  header{background:#fff; border-bottom:3px solid var(--naranja); padding:10px 24px; display:flex; align-items:center; gap:12px; position:sticky; top:0; z-index:50}
+  header .app{font-weight:800; font-size:18px; color:var(--naranja); cursor:pointer}
+  header .marca{font-weight:700; letter-spacing:.06em; font-size:11px; color:var(--gris)}
+  header .sep{flex:1}
+  button{cursor:pointer; border:1px solid var(--borde); background:#fff; border-radius:6px; padding:6px 12px; font-size:13px; color:var(--tinta)}
+  button:hover{border-color:var(--naranja); color:var(--naranja)}
+  button.primario{background:var(--naranja); border-color:var(--naranja); color:#fff; font-weight:600}
+  button.primario:hover{opacity:.9; color:#fff}
+  .layout{display:grid; grid-template-columns:340px 1fr; gap:20px; max-width:1280px; margin:20px auto; padding:0 24px}
+  .panel{background:var(--carta); border:1px solid var(--borde); border-radius:10px; padding:18px}
+  .panel h2{font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:var(--gris); margin-bottom:12px}
+  .campo{margin-bottom:12px}
+  .campo label{display:block; font-size:12px; font-weight:600; margin-bottom:3px}
+  .campo label .req{color:var(--naranja)}
+  .campo label .opt{color:var(--gris); font-weight:400}
+  .campo input,.campo select,.campo textarea{width:100%; border:1px solid var(--borde); border-radius:6px; padding:6px 8px; font-size:13px; font-family:inherit; background:#fff}
+  .campo .auto{background:#F2F2F2; color:var(--gris); font-style:italic}
+  .chip{display:inline-block; padding:3px 10px; border-radius:99px; font-size:12px; font-weight:700}
+  .chip.borrador{background:#EEE; color:#555}
+  .chip.en_revision,.chip.en_comentarios{background:var(--naranja-suave); color:var(--naranja)}
+  .chip.aprobado,.chip.cerrado{background:#E8F5E9; color:var(--verde)}
+  .chip.rechazado,.chip.reemplazado,.chip.obsoleto{background:#FBE4E0; color:var(--rojo)}
+  .doc{background:var(--carta); border:1px solid var(--borde); border-radius:10px; padding:28px 34px; min-height:70vh}
+  .doc .tipo-doc{color:var(--naranja); font-weight:700; font-size:12px; letter-spacing:.08em}
+  .doc h1.titulo{font-size:24px; margin:4px 0 18px; outline:none}
+  .doc h1.titulo:empty:before{content:"<Título del documento>"; color:#BBB}
+  .seccion{border:1px solid transparent; border-radius:8px; padding:10px 12px; margin:0 -12px 6px}
+  .seccion:hover{border-color:var(--borde); background:#FDFCFB}
+  .seccion .cab{display:flex; align-items:center; gap:8px}
+  .seccion .cab h3{font-size:16px}
+  .seccion .cab h4{font-size:14px}
+  .tag{font-size:10px; font-weight:700; padding:2px 7px; border-radius:4px; letter-spacing:.04em}
+  .tag.oblig{background:var(--naranja-suave); color:var(--naranja)}
+  .tag.opc{background:#EEE; color:var(--gris)}
+  .tag.rec{background:var(--azul-suave); color:var(--azul)}
+  .seccion .cab .acciones{margin-left:auto; opacity:0; display:flex; gap:6px}
+  .seccion:hover .cab .acciones{opacity:1}
+  .seccion .cab .acciones button{padding:2px 8px; font-size:12px}
+  .bloque{margin:8px 0; position:relative}
+  .bloque .btx{min-height:34px; padding:6px 8px; border:1px dashed transparent; border-radius:6px; outline:none; line-height:1.5}
+  .bloque .btx:hover,.bloque .btx:focus{border-color:var(--borde); background:#fff}
+  .bloque .btx:empty:before{content:attr(data-ph); color:#BBB; font-style:italic}
+  .bloque.callout .btx{background:var(--azul-suave); border-left:4px solid var(--azul); color:#1F4E79; border-radius:4px}
+  .bloque.codigo .btx{background:#2B2B2B; color:#E8E8E8; font-family:ui-monospace,Consolas,monospace; font-size:12.5px; border-radius:6px; white-space:pre-wrap}
+  .bloque .quitar{position:absolute; top:2px; right:2px; border:none; background:none; color:#BBB; font-size:14px; padding:2px 6px; opacity:0}
+  .bloque:hover .quitar{opacity:1}
+  .bloque .quitar:hover{color:var(--rojo)}
+  table.tbl{border-collapse:collapse; width:100%; margin:4px 0}
+  table.tbl th,table.tbl td{border:1px solid var(--borde); padding:5px 8px; font-size:13px; text-align:left}
+  table.tbl th{background:#F2F2F2}
+  table.tbl td[contenteditable]:focus{background:#FFFBEF; outline:1px solid var(--naranja)}
+  table.tbl th[contenteditable]:focus{outline:1px solid var(--naranja)}
+  .mini{font-size:12px; color:var(--gris)}
+  .add-fila{margin-top:2px}
+  .barra-agregar{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap}
+  .menu{position:absolute; background:#fff; border:1px solid var(--borde); border-radius:8px; box-shadow:0 6px 24px rgba(0,0,0,.12); padding:6px; z-index:100; min-width:260px; max-height:60vh; overflow:auto}
+  .menu button{display:block; width:100%; text-align:left; border:none; padding:7px 10px; border-radius:6px}
+  .menu button:hover{background:var(--naranja-suave)}
+  .menu button small{display:block; color:var(--gris); font-weight:400}
+  .menu .grupo{font-size:10px; text-transform:uppercase; color:var(--gris); padding:6px 10px 2px; letter-spacing:.06em}
+  dialog{border:none; border-radius:12px; padding:0; max-width:820px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,.25)}
+  dialog::backdrop{background:rgba(0,0,0,.35)}
+  dialog .cab{display:flex; align-items:center; padding:14px 20px; border-bottom:1px solid var(--borde)}
+  dialog .cab h3{font-size:15px}
+  dialog .cab button{margin-left:auto}
+  dialog pre{padding:16px 20px; max-height:60vh; overflow:auto; font-size:12px; background:#2B2B2B; color:#D7F0D7; margin:0}
+  dialog .pie{padding:12px 20px; display:flex; gap:8px; justify-content:flex-end; align-items:center}
+  .comentario{border:1px solid var(--borde); border-radius:8px; padding:10px; margin-bottom:8px; background:#fff}
+  .comentario .meta{font-size:11px; color:var(--gris); margin-bottom:4px}
+  .comentario .res{margin-top:6px; display:flex; gap:6px; align-items:center; flex-wrap:wrap}
+  .comentario select{font-size:12px; padding:3px 6px; border:1px solid var(--borde); border-radius:5px}
+  .comentario .estado-res{font-size:11px; font-weight:700}
+  .pendiente-res{color:var(--rojo)} .resuelto{color:var(--verde)}
+  .home{max-width:900px; margin:40px auto; padding:0 24px}
+  .home .cards{display:flex; gap:16px; margin:20px 0 30px}
+  .home .card{background:#fff; border:1px solid var(--borde); border-radius:12px; padding:20px; width:260px; cursor:pointer}
+  .home .card:hover{border-color:var(--naranja); box-shadow:0 8px 30px rgba(232,106,16,.12)}
+  .home .card h3{color:var(--naranja); margin-bottom:4px}
+  .home table{border-collapse:collapse; width:100%; background:#fff; border-radius:10px; overflow:hidden}
+  .home th,.home td{border-bottom:1px solid var(--borde); padding:10px 14px; font-size:13px; text-align:left}
+  .home th{background:#F2F2F2; font-size:11px; text-transform:uppercase; letter-spacing:.05em}
+  .home tr.fila:hover{background:var(--naranja-suave); cursor:pointer}
+  .oculto{display:none !important}
+  .nota-dadm{font-size:11px; color:var(--azul); background:var(--azul-suave); border-radius:6px; padding:6px 10px; margin-top:8px}
+  #guardado{font-size:12px; color:var(--verde)}
+  #dlg-config .cuerpo{padding:16px 20px; max-height:65vh; overflow:auto}
+  #dlg-config table{border-collapse:collapse; width:100%; margin-bottom:14px}
+  #dlg-config th,#dlg-config td{border:1px solid var(--borde); padding:5px 8px; font-size:13px; text-align:left}
+  #dlg-config th{background:#F2F2F2}
+  #dlg-config h4{margin:10px 0 6px; color:var(--naranja)}
+  #dlg-config .nuevo{background:#FAFAF8; border:1px solid var(--borde); border-radius:8px; padding:12px; display:grid; grid-template-columns:1fr 1fr; gap:8px}
+  #dlg-config .nuevo input,#dlg-config .nuevo select{border:1px solid var(--borde); border-radius:6px; padding:6px 8px; font-size:13px}
+  #vista{position:fixed; inset:0; background:#777; overflow:auto; z-index:200; padding:24px 0}
+  #vista .barra{position:sticky; top:0; text-align:center; margin-bottom:14px; z-index:210}
+  #vista .barra button{margin:0 4px; box-shadow:0 2px 8px rgba(0,0,0,.3)}
+  #vista .pagina{background:#fff; width:794px; margin:0 auto; padding:60px 68px; font-size:14px; line-height:1.45; color:#262626; box-shadow:0 4px 24px rgba(0,0,0,.35)}
+  #vista .marca-v{color:#7F7F7F; font-size:11px; letter-spacing:.05em; border-bottom:2px solid var(--naranja); padding-bottom:4px}
+  #vista .tipo-v{color:var(--naranja); font-weight:700; font-size:15px; margin-top:18px}
+  #vista .id-v{font-size:30px; font-weight:800; margin:2px 0}
+  #vista .tit-v{font-size:20px; font-weight:700; margin-bottom:4px}
+  #vista .desc-v{color:#7F7F7F; font-size:13px; margin-bottom:14px}
+  #vista .chip-v{background:#FDEADA; color:var(--naranja); font-weight:700; text-align:center; padding:6px; margin-bottom:14px}
+  #vista table{border-collapse:collapse; width:100%; margin:8px 0}
+  #vista th,#vista td{border:1px solid #BFBFBF; padding:5px 8px; font-size:12.5px; text-align:left; vertical-align:top}
+  #vista th{background:#F2F2F2}
+  #vista td.lbl{background:#F2F2F2; font-weight:700; width:30%}
+  #vista h2.sec-v{font-size:17px; margin:22px 0 8px}
+  #vista h3.sub-v{font-size:14.5px; margin:14px 0 6px}
+  #vista .callout-v{padding:8px 12px; margin:8px 0; font-size:13px; border-radius:3px}
+  #vista .co-cita{background:var(--azul-suave); color:#1F4E79; font-style:italic}
+  #vista .co-decision{background:#FDEADA; color:#7A4510}
+  #vista .co-advertencia{background:#FBE4E0; color:#9C3325}
+  #vista .co-info{background:var(--azul-suave); color:#1F4E79}
+  #vista .codigo-v{background:#2B2B2B; color:#E8E8E8; font-family:ui-monospace,Consolas,monospace; font-size:12px; padding:10px; white-space:pre-wrap; border-radius:4px; margin:8px 0}
+  #vista p{margin:6px 0}
+  #vista ul{margin:6px 0 6px 22px}
+  @media print{
+    body > *{display:none !important}
+    body > #vista{display:block !important; position:static; background:#fff; padding:0}
+    #vista .barra{display:none}
+    #vista .pagina{box-shadow:none; width:auto; padding:0}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="app" onclick="irHome()">DADM</span>
+  <span class="marca">DATA ARCHITECT DOCUMENT MANAGER · ARQUITECTURA DATA · BANCO GALICIA</span>
+  <span class="sep"></span>
+  <span id="guardado"></span>
+  <span id="hdr-estado" class="oculto"></span>
+  <button id="btn-transicion" class="oculto"></button>
+  <button id="btn-guardar" class="oculto primario">💾 Guardar</button>
+  <button id="btn-vista" class="oculto">Vista / Exportar</button>
+  <button id="btn-json" class="oculto">Ver JSON</button>
+  <button id="btn-config" onclick="abrirConfig()">⚙ Configuración</button>
+</header>
+
+<div class="home" id="home">
+  <h1 style="font-size:24px">Documentos de Arquitectura</h1>
+  <div class="cards">
+    <div class="card" onclick="nuevoDoc('adr')"><h3>+ Nuevo ADR</h3><span class="mini">Architecture Decision Record — registra una decisión tomada.</span></div>
+    <div class="card" onclick="nuevoDoc('rfc')"><h3>+ Nuevo RFC</h3><span class="mini">Request for Comments — propuesta abierta al debate.</span></div>
+  </div>
+  <table id="lista-docs"></table>
+</div>
+
+<div class="layout oculto" id="editor">
+  <div>
+    <div class="panel" id="panel-ficha"></div>
+    <div class="panel oculto" id="panel-comentarios" style="margin-top:16px"></div>
+  </div>
+  <div class="doc" id="doc"></div>
+</div>
+
+<dialog id="dlg-config" style="max-width:900px">
+  <div class="cab"><h3>⚙ Configuración del catálogo — administración DADM</h3><button onclick="dlgConfig.close()">Cerrar</button></div>
+  <div class="cuerpo" id="config-cuerpo"></div>
+  <div class="pie"><span class="mini" style="margin-right:auto">Los cambios se guardan en el servidor y aplican a los documentos nuevos.</span><button class="primario" onclick="dlgConfig.close()">Listo</button></div>
+</dialog>
+
+<div id="vista" class="oculto"></div>
+
+<dialog id="dlg-json">
+  <div class="cab"><h3>Documento serializado (contrato adr/rfc.schema.json)</h3><button onclick="dlgJson.close()">Cerrar</button></div>
+  <pre id="json-out"></pre>
+  <div class="pie"><button onclick="copiarJson()">Copiar</button></div>
+</dialog>
+
+<script>
+// ================= configuración remota =================
+let CATALOGOS = null; // catalogos.json (canónico, editable)
+let CAT = null;       // forma derivada que usa el editor
+let doc = null;
+const hoy = () => new Date().toISOString().slice(0,10);
+const api = async (metodo, ruta, body) => {
+  const r = await fetch(ruta, { method: metodo, headers: {"Content-Type":"application/json"}, body: body?JSON.stringify(body):undefined });
+  if(!r.ok){ const e = await r.json().catch(()=>({})); throw new Error(e.error ? e.error + (e.faltan?": "+e.faltan.join(", "):"") : "Error "+r.status); }
+  return r.json();
+};
+
+// guías de redacción (UX del editor; no son configuración)
+const GUIA = {
+  contexto:"¿Qué problema obliga a decidir? Que se entienda en un año. Cerrá con los drivers.",
+  opciones_evaluadas:"Las opciones reales que comparaste, incluida «no hacer nada».",
+  decision:"Una oración: «Se adopta la opción X».",
+  consecuencias:"Qué cambia al adoptar la decisión.",
+  implementacion:"Solo si la decisión requiere un plan.",
+  referencias:"Formato [1], [2]… Bibliografía y documentos citados.",
+  glosario:"Términos que un lector no especializado no conoce.",
+  anexo:"Material complementario.", custom:"Lo que necesites documentar.",
+  resumen_ejecutivo:"Qué se propone y por qué ahora. Cerrá con «Se pide al lector: …»",
+  problema_motivacion:"El problema que motiva la propuesta.",
+  propuesta:"La solución propuesta.",
+  alternativas:"Qué se descartó y por qué.",
+  trade_offs:"Agregá solo las subsecciones que apliquen.",
+  riesgos:"Riesgo, probabilidad, impacto, mitigación.",
+  cuestiones_abiertas:"Preguntas concretas a los revisores: el foco del feedback.",
+  fuera_de_alcance:"Temas para RFCs/ADRs posteriores.",
+  cronograma:"Hitos y fechas de la revisión.",
+  stakeholders_revisores:"Seguimiento del estado de revisión por área.",
+};
+const TT_FIJAS = { opciones_evaluadas:"opciones_evaluadas", glosario:"glosario", riesgos:"riesgos", cronograma:"cronograma", stakeholders_revisores:"stakeholders" };
+
+function derivar(c){
+  const est = lista => Object.fromEntries(lista.map(e=>[e.codigo,{et:e.etiqueta,sig:e.transiciones}]));
+  const secs = lista => lista.map(d=>({
+    c:d.codigo, et:d.etiqueta, ob:d.obligatoria?1:0, rec:d.recomendada?1:0, mult:d.multiple?1:0, cfg:d.cfg?1:0,
+    tt:d.tabla_tipada || TT_FIJAS[d.codigo], ph:d.guia || GUIA[d.codigo] || "",
+    subs:d.subsecciones ? d.subsecciones.map(s=>({t:s.etiqueta, opc:s.opcional?1:0, ph:""})) : undefined,
+  }));
+  return {
+    ambitos: c.ambitos.map(a=>[a.codigo,a.etiqueta]),
+    estados: { adr: est(c.estados_adr), rfc: est(c.estados_rfc) },
+    secciones: { adr: secs(c.secciones_adr), rfc: secs(c.secciones_rfc) },
+    tablasTipadas: Object.fromEntries(c.tablas_tipadas.map(t=>[t.codigo,{et:t.codigo.replace(/_/g," "), cols:t.columnas}])),
+    tiposComentario: c.tipos_comentario_rfc,
+    resoluciones: c.resoluciones_comentario,
+  };
+}
+
+async function init(){
+  CATALOGOS = await api("GET","/api/config");
+  CAT = derivar(CATALOGOS);
+  await renderHome();
+}
+async function renderHome(){
+  const docs = await api("GET","/api/documentos");
+  const tb = document.getElementById("lista-docs");
+  if(!docs.length){ tb.innerHTML = `<tr><td class="mini" style="padding:20px">Todavía no hay documentos. Creá el primero con las tarjetas de arriba.</td></tr>`; return; }
+  tb.innerHTML = `<tr><th>ID</th><th>Título</th><th>Tipo</th><th>Estado</th><th>Versión</th><th>Actualizado</th></tr>` +
+    docs.map(d=>`<tr class="fila" onclick="abrirDocumento('${d.id}')"><td><b>${d.id}</b></td><td>${d.titulo||"<i class='mini'>sin título</i>"}</td><td>${d.tipo.toUpperCase()}</td><td><span class="chip ${d.estado}">${(CAT.estados[d.tipo][d.estado]||{}).et||d.estado}</span></td><td>v${d.version||"0.1"}</td><td class="mini">${d.actualizado||""}</td></tr>`).join("");
+}
+function irHome(){
+  document.getElementById("editor").classList.add("oculto");
+  document.getElementById("home").classList.remove("oculto");
+  ["btn-json","hdr-estado","btn-transicion","btn-vista","btn-guardar"].forEach(i=>document.getElementById(i).classList.add("oculto"));
+  document.getElementById("guardado").textContent = "";
+  doc = null; renderHome();
+}
+
+// ================= crear / abrir / guardar =================
+function seccionNueva(def, tituloCustom){
+  const bloques = def.tt
+    ? [{tipo:"tabla_tipada", plantilla:def.tt, encabezados:CAT.tablasTipadas[def.tt].cols.slice(), filas:[new Array(CAT.tablasTipadas[def.tt].cols.length).fill("")]}]
+    : [{tipo:"texto", contenido:""}];
+  const sec = {codigo:def.c, titulo:tituloCustom||def.et, bloques};
+  if(def.subs) sec.subsecciones = def.subs.filter(s=>!s.opc).map(s=>({titulo:s.t, ph:s.ph, bloques:[{tipo:"texto",contenido:""}]}));
+  return sec;
+}
+async function nuevoDoc(tipo){
+  const creado = await api("POST","/api/documentos",{tipo});
+  doc = {
+    id:creado.id, tipo, titulo:"", descripcion_corta:"", estado:"borrador",
+    ambito:"", autores:"", decisores:"", sponsor:"",
+    nota_alcance:"", tags:"", relaciones:"", stakeholders:"",
+    ventana_desde:"", ventana_hasta:"", fecha_esperada:"",
+    fecha_creacion: creado.fecha_creacion, version: creado.version,
+    historial: creado.historial, comentarios:[],
+    cuerpo: CAT.secciones[tipo].filter(s=>s.ob).map(s=>seccionNueva(s)),
+  };
+  await guardar(true);
+  mostrarEditor();
+}
+async function abrirDocumento(id){
+  const j = await api("GET","/api/documentos/"+id);
+  doc = deserializar(j);
+  mostrarEditor();
+}
+function mostrarEditor(){
+  document.getElementById("home").classList.add("oculto");
+  document.getElementById("editor").classList.remove("oculto");
+  ["btn-json","hdr-estado","btn-transicion","btn-vista","btn-guardar"].forEach(i=>document.getElementById(i).classList.remove("oculto"));
+  renderTodo();
+}
+async function guardar(silencioso){
+  try{
+    const r = await api("PUT","/api/documentos/"+doc.id, serializar());
+    document.getElementById("guardado").textContent = "✔ Guardado "+new Date().toLocaleTimeString();
+    return true;
+  }catch(e){
+    if(!silencioso) alert("No se pudo guardar: "+e.message);
+    document.getElementById("guardado").textContent = "";
+    return false;
+  }
+}
+document.getElementById("btn-guardar").onclick = ()=>guardar();
+
+function desBloques(bs){
+  return (bs||[]).map(b=>{
+    if(b.tipo==="tabla_tipada"){
+      const cols = b.filas.length ? Object.keys(b.filas[0]) : (CAT.tablasTipadas[b.plantilla]||{cols:["Col"]}).cols.slice();
+      return {tipo:"tabla_tipada", plantilla:b.plantilla, encabezados:cols, filas:b.filas.map(f=>cols.map(c=>f[c]||""))};
+    }
+    return {...b};
+  });
+}
+function deserializar(j){
+  const listaTxt = a => (a||[]).map(x=>[x.nombre,x.rol,x.equipo].filter(Boolean).join(" — ")).join(" · ");
+  return {
+    id:j.id, tipo:j.tipo, titulo:j.titulo||"", descripcion_corta:j.descripcion_corta||"",
+    estado:j.estado, ambito:j.ambito||"", autores:listaTxt(j.autores),
+    decisores:listaTxt(j.decisores),
+    sponsor:j.sponsor ? [j.sponsor.nombre,j.sponsor.equipo].filter(Boolean).join(" — ") : "",
+    nota_alcance:j.nota_alcance||"", tags:(j.tags||[]).join(", "),
+    relaciones:(j.relaciones||[]).map(r=>r.tipo+": "+r.destino).join(" · "),
+    stakeholders:(j.stakeholders||[]).map(s=>`${s.nombre} (${s.tipo_revision||"opcional"})`).join(" · "),
+    ventana_desde:(j.ventana_comentarios||{}).desde||"", ventana_hasta:(j.ventana_comentarios||{}).hasta||"",
+    fecha_esperada:j.fecha_esperada_decision||"",
+    fecha_creacion:j.fecha_creacion, version:j.version||"0.1",
+    historial:j.historial||[], cierre:j.cierre,
+    comentarios:(j.comentarios||[]).map(c=>({num:c.num,fecha:c.fecha,revisor:c.revisor,seccion:c.seccion||"",tipo:c.tipo,comentario:c.comentario,resolucion:c.resolucion,detalle:c.detalle_resolucion})),
+    cuerpo:(j.cuerpo||[]).map(s=>({
+      codigo:s.codigo,
+      titulo:s.titulo || ((CAT.secciones[j.tipo].find(d=>d.c===s.codigo)||{}).et) || s.codigo,
+      bloques:desBloques(s.bloques),
+      subsecciones:(s.subsecciones||[]).map(u=>({titulo:u.titulo, ph:"", bloques:desBloques(u.bloques)})),
+    })),
+  };
+}
+
+// ================= render =================
+function renderTodo(){ renderHeader(); renderFicha(); renderDoc(); renderComentarios(); }
+function renderHeader(){
+  const est = CAT.estados[doc.tipo][doc.estado];
+  document.getElementById("hdr-estado").outerHTML = `<span id="hdr-estado" class="chip ${doc.estado}">${doc.id} · ${est.et} · v${doc.version}</span>`;
+  const btn = document.getElementById("btn-transicion");
+  if(est.sig.length){
+    btn.classList.remove("oculto");
+    btn.textContent = "→ " + CAT.estados[doc.tipo][est.sig[0]].et;
+    btn.onclick = ()=>transicionar(est.sig[0]);
+  } else btn.classList.add("oculto");
+}
+async function transicionar(nuevo){
+  if(doc.estado==="borrador"){
+    const faltan = CAT.secciones[doc.tipo].filter(d=>d.ob && !defUsada(d)).map(d=>d.et);
+    if(faltan.length){ alert("DADM bloquea la transición: faltan secciones obligatorias según la configuración vigente:\n\n• "+faltan.join("\n• ")); return; }
+    if(!doc.titulo.trim()){ alert("DADM bloquea la transición: el documento no tiene título."); return; }
+    const fichaFaltante = [];
+    if(!doc.autores.trim()) fichaFaltante.push("Autor(es)");
+    if(doc.tipo==="adr" && !doc.ambito) fichaFaltante.push("Ámbito");
+    if(doc.tipo==="adr" && !doc.decisores.trim()) fichaFaltante.push("Decisores / Aprobadores");
+    if(doc.tipo==="rfc" && !doc.sponsor.trim()) fichaFaltante.push("Sponsor");
+    if(fichaFaltante.length){ alert("DADM bloquea la transición: faltan campos obligatorios de la ficha:\n\n• "+fichaFaltante.join("\n• ")); return; }
+  }
+  if(doc.tipo==="rfc" && nuevo==="en_comentarios" && (!doc.ventana_desde || !doc.ventana_hasta)){
+    alert("DADM bloquea la transición: para abrir a comentarios hay que definir la ventana de comentarios (desde – hasta)."); return;
+  }
+  if(doc.tipo==="rfc" && nuevo==="cerrado" && doc.comentarios.some(c=>!c.resolucion)){
+    alert("DADM bloquea el cierre: hay comentarios sin resolución."); return;
+  }
+  if(!confirm(`Pasar de «${CAT.estados[doc.tipo][doc.estado].et}» a «${CAT.estados[doc.tipo][nuevo].et}»?`)) return;
+  if(doc.tipo==="rfc" && nuevo==="cerrado"){
+    const res = prompt("Resolución del RFC (aceptado / aceptado_con_cambios / rechazado / pospuesto):","aceptado");
+    if(!["aceptado","aceptado_con_cambios","rechazado","pospuesto"].includes(res)){ alert("Resolución inválida."); return; }
+    doc.cierre = {resolucion:res, fecha:hoy(), decidido_por:doc.sponsor||"(sponsor)"};
+  }
+  const anterior = doc.estado;
+  doc.estado = nuevo;
+  const nv = (nuevo==="aprobado"||nuevo==="cerrado") ? "1.0" : doc.version;
+  doc.version = nv;
+  doc.historial.push({version:nv, fecha:hoy(), autor:"(vos)", cambio:"Transición de estado → "+CAT.estados[doc.tipo][nuevo].et});
+  const ok = await guardar();
+  if(!ok){ doc.estado = anterior; doc.historial.pop(); renderTodo(); return; }
+  renderTodo();
+}
+
+function campo(id,label,req,control){ return `<div class="campo"><label>${label} ${req?'<span class="req">*</span>':'<span class="opt">(opcional)</span>'}</label>${control}</div>`; }
+const inp=(k,ph,handler)=>`<input value="${(doc[k]||"").replace(/"/g,"&quot;")}" placeholder="${ph}" oninput="${handler||`doc['${k}']=this.value`}">`;
+
+function renderFicha(){
+  const esAdr = doc.tipo==="adr";
+  let h = `<h2>Ficha del documento</h2>`;
+  h += campo("id","Identificador",1,`<input class="auto" value="${doc.id} — asignado por DADM" disabled>`);
+  h += campo("titulo","Título",1,inp("titulo","Qué se decide/propone, en una línea","doc.titulo=this.value; renderTituloDoc()"));
+  h += campo("descripcion_corta","Descripción corta",0,inp("descripcion_corta","Bajada para listados (1–2 líneas)"));
+  if(esAdr){
+    h += campo("ambito","Ámbito",1,`<select onchange="doc.ambito=this.value"><option value="">— elegir —</option>${CAT.ambitos.map(a=>`<option value="${a[0]}" ${doc.ambito===a[0]?"selected":""}>${a[1]}</option>`).join("")}</select>`);
+    h += campo("autores","Autor(es)",1,inp("autores","Nombre — Rol, Equipo (separar con ·)"));
+    h += campo("decisores","Decisores / Aprobadores",1,inp("decisores","Personas o equipos que aprueban"));
+    h += campo("nota_alcance","Nota de alcance",0,inp("nota_alcance","Qué fija este ADR y qué queda afuera"));
+    h += campo("relaciones","Relaciones",0,inp("relaciones","deriva_de: RFC-0004 · reemplaza_a: ADR-002"));
+  } else {
+    h += campo("autores","Autor(es)",1,inp("autores","Nombre — Rol, Equipo"));
+    h += campo("sponsor","Sponsor / decisión final por",1,inp("sponsor","Ej: Gobierno de Datos"));
+    h += campo("ventana","Ventana de comentarios",0,`<div style="display:flex;gap:6px"><input type="date" value="${doc.ventana_desde}" onchange="doc.ventana_desde=this.value"><input type="date" value="${doc.ventana_hasta}" onchange="doc.ventana_hasta=this.value"></div>`);
+    h += campo("fecha_esperada","Fecha esperada de decisión",0,`<input type="date" value="${doc.fecha_esperada}" onchange="doc.fecha_esperada=this.value">`);
+    h += campo("stakeholders","Stakeholders convocados",0,inp("stakeholders","Gobierno (requerida) · Plataforma (requerida)"));
+  }
+  h += campo("tags","Tags",0,inp("tags","redshift, iceberg, dbt"));
+  h += campo("fc","Fecha creación / Versión",1,`<input class="auto" value="${doc.fecha_creacion} · v${doc.version} — automáticas" disabled>`);
+  h += `<div class="nota-dadm">Historial, versión y ${esAdr?"aprobaciones":"tabla de comentarios"}: los genera DADM.</div>`;
+  document.getElementById("panel-ficha").innerHTML = h;
+}
+function renderTituloDoc(){ document.querySelector("#doc .titulo").textContent = doc.titulo; }
+
+function defDe(sec){
+  const defs = CAT.secciones[doc.tipo];
+  if(sec.codigo==="custom"){
+    return defs.find(d=>d.cfg && d.et===sec.titulo) || defs.find(d=>d.c==="custom" && !d.cfg) || {};
+  }
+  return defs.find(d=>d.c===sec.codigo) || {};
+}
+const defUsada = d => d.cfg ? doc.cuerpo.some(s=>s.titulo===d.et) : doc.cuerpo.some(s=>s.codigo===d.c);
+
+function renderDoc(){
+  const cont = document.getElementById("doc");
+  let h = `<div class="tipo-doc">${doc.tipo==="adr"?"ARCHITECTURE DECISION RECORD":"REQUEST FOR COMMENTS"} · ${doc.id}</div>`;
+  h += `<h1 class="titulo" contenteditable="true" oninput="doc.titulo=this.textContent; document.querySelectorAll('#panel-ficha input')[1].value=this.textContent">${doc.titulo}</h1>`;
+  doc.cuerpo.forEach((sec,si)=>{
+    const def = defDe(sec);
+    const tag = def.ob?'<span class="tag oblig">OBLIGATORIA</span>':(def.rec?'<span class="tag rec">RECOMENDADA</span>':'<span class="tag opc">OPCIONAL</span>');
+    const base = `doc.cuerpo[${si}]`;
+    h += `<div class="seccion"><div class="cab"><h3>${si+1}. ${sec.titulo}</h3>${tag}
+      <div class="acciones">
+        <button onclick="menuBloque(event,'${base}.bloques')">+ bloque</button>
+        <button onclick="agregarSubseccion(${si})">+ subsección</button>
+        ${def.ob?"":`<button onclick="quitarSeccion(${si})" title="Quitar sección">✕</button>`}
+      </div></div>`;
+    sec.bloques.forEach((b,bi)=>{ h += renderBloque(b,`${base}.bloques`,bi,def.ph); });
+    (sec.subsecciones||[]).forEach((sub,ui)=>{
+      const sbase = `${base}.subsecciones[${ui}]`;
+      h += `<div class="subseccion" style="margin:10px 0 4px 18px; border-left:3px solid var(--borde); padding-left:12px">
+        <div class="cab"><h4>${si+1}.${ui+1}  ${sub.titulo}</h4>
+        <div class="acciones"><button onclick="menuBloque(event,'${sbase}.bloques')">+ bloque</button>
+        <button onclick="if(confirm('¿Quitar la subsección?')){${base}.subsecciones.splice(${ui},1); renderDoc()}" title="Quitar subsección">✕</button></div></div>`;
+      sub.bloques.forEach((b,bi)=>{ h += renderBloque(b,`${sbase}.bloques`,bi,sub.ph); });
+      h += `</div>`;
+    });
+    h += `</div>`;
+  });
+  h += `<div class="barra-agregar">
+    <button class="primario" onclick="menuSeccion(event)">+ Agregar sección</button>
+    <span class="mini" style="align-self:center">Secciones del catálogo o personalizadas. Las obligatorias no se pueden quitar.</span>
+  </div>`;
+  cont.innerHTML = h;
+}
+
+function renderBloque(b,expr,bi,ph){
+  const B = `${expr}[${bi}]`;
+  const quitar = `<button class="quitar" onclick="${expr}.splice(${bi},1); renderDoc()" title="Quitar bloque">✕</button>`;
+  if(b.tipo==="texto") return `<div class="bloque">${quitar}<div class="btx" contenteditable="true" data-ph="${(ph||"Escribí acá…").replace(/"/g,"&quot;")}" oninput="${B}.contenido=this.innerText">${b.contenido||""}</div></div>`;
+  if(b.tipo==="callout") return `<div class="bloque callout">${quitar}<div class="btx" contenteditable="true" data-ph="Decisión / advertencia / cita destacada…" oninput="${B}.contenido=this.innerText">${b.contenido||""}</div></div>`;
+  if(b.tipo==="codigo") return `<div class="bloque codigo">${quitar}<div class="btx" contenteditable="true" data-ph="-- SQL / YAML / código" oninput="${B}.contenido=this.innerText">${b.contenido||""}</div></div>`;
+  if(b.tipo==="imagen") return `<div class="bloque">${quitar}<div class="btx" style="text-align:center;color:#999;border:1px dashed var(--borde);padding:22px">🖼 Imagen / diagrama — <i contenteditable="true" data-ph="epígrafe…" oninput="${B}.epigrafe=this.innerText">${b.epigrafe||""}</i></div></div>`;
+  if(b.tipo==="tabla_libre"||b.tipo==="tabla_tipada"){
+    const fijo = b.tipo==="tabla_tipada";
+    let t = `<div class="bloque">${quitar}${fijo?`<div class="mini" style="margin-bottom:2px">Objeto complejo — tabla tipada: <b>${(CAT.tablasTipadas[b.plantilla]||{et:b.plantilla}).et}</b></div>`:`<div class="mini" style="margin-bottom:2px">Objeto complejo — tabla libre</div>`}<table class="tbl"><tr>`;
+    const din = !fijo || ["comparativa","raci","matriz_asignacion"].includes(b.plantilla);
+    b.encabezados.forEach((c,ci)=>{ t += `<th ${din?`contenteditable="true" oninput="${B}.encabezados[${ci}]=this.innerText"`:""}>${c}</th>`; });
+    t += `</tr>`;
+    b.filas.forEach((f,fi)=>{
+      t += `<tr>`;
+      f.forEach((c,ci)=>{ t += `<td contenteditable="true" oninput="${B}.filas[${fi}][${ci}]=this.innerText">${c}</td>`; });
+      t += `</tr>`;
+    });
+    t += `</table><button class="add-fila mini" onclick="${B}.filas.push(new Array(${b.encabezados.length}).fill('')); renderDoc()">+ fila</button>`;
+    if(din) t += ` <button class="add-fila mini" onclick="let bl=${B}; bl.encabezados.push('Col'); bl.filas.forEach(f=>f.push('')); renderDoc()">+ columna</button>`;
+    return t + `</div>`;
+  }
+  return "";
+}
+function agregarSubseccion(si){
+  const sec = doc.cuerpo[si];
+  const def = defDe(sec);
+  const sugeridas = (def.subs||[]).map(s=>s.t).join(" · ");
+  const titulo = prompt("Título de la subsección:"+(sugeridas?`\nSugeridas del catálogo: ${sugeridas}`:""), "");
+  if(!titulo) return;
+  const sub = (def.subs||[]).find(s=>s.t===titulo);
+  sec.subsecciones = sec.subsecciones||[];
+  sec.subsecciones.push({titulo, ph:sub?sub.ph:"", bloques:[{tipo:"texto",contenido:""}]});
+  renderDoc();
+}
+
+// ================= menús =================
+let menuAbierto = null;
+function cerrarMenu(){ if(menuAbierto){menuAbierto.remove(); menuAbierto=null;} }
+document.addEventListener("click", e=>{ if(menuAbierto && !menuAbierto.contains(e.target)) cerrarMenu(); }, true);
+function abrirMenu(ev, html){
+  cerrarMenu(); ev.stopPropagation();
+  const m = document.createElement("div");
+  m.className = "menu"; m.innerHTML = html;
+  document.body.appendChild(m);
+  const r = ev.target.getBoundingClientRect();
+  m.style.left = Math.min(r.left, innerWidth-300)+"px";
+  m.style.top = (r.bottom+4+scrollY)+"px";
+  menuAbierto = m;
+}
+function menuSeccion(ev){
+  const defs = CAT.secciones[doc.tipo];
+  let h = `<div class="grupo">Secciones del catálogo</div>`;
+  defs.forEach((d,i)=>{
+    if(d.ob || (d.c==="custom" && !d.cfg)) return;
+    if(!d.mult && defUsada(d)) return;
+    h += `<button onclick="agregarSeccion(${i})">${d.et} ${d.rec?"<small>recomendada</small>":(d.cfg?"<small>apartado agregado por configuración</small>":"")}</button>`;
+  });
+  h += `<div class="grupo">Libre</div><button onclick="agregarSeccion(${defs.findIndex(d=>d.c==="custom" && !d.cfg)})">Sección personalizada… <small>título propio + bloques libres</small></button>`;
+  abrirMenu(ev,h);
+}
+function agregarSeccion(idx){
+  cerrarMenu();
+  const def = CAT.secciones[doc.tipo][idx];
+  let titulo;
+  if((def.c==="custom" && !def.cfg) || def.c==="anexo"){
+    titulo = prompt("Título de la sección:", def.c==="anexo"?"Anexo — ":""); if(!titulo) return;
+  } else if(def.cfg){
+    titulo = def.et;
+  }
+  doc.cuerpo.push(seccionNueva(def, titulo));
+  renderDoc();
+}
+function quitarSeccion(si){ if(confirm("¿Quitar la sección «"+doc.cuerpo[si].titulo+"» y su contenido?")){ doc.cuerpo.splice(si,1); renderDoc(); } }
+function menuBloque(ev,expr){
+  let h = `<div class="grupo">Objetos simples</div>`;
+  h += `<button onclick="agregarBloque('${expr}','texto')">Texto</button>`;
+  h += `<button onclick="agregarBloque('${expr}','callout')">Callout / cita destacada</button>`;
+  h += `<button onclick="agregarBloque('${expr}','codigo')">Código</button>`;
+  h += `<button onclick="agregarBloque('${expr}','imagen')">Imagen / diagrama</button>`;
+  h += `<div class="grupo">Objetos complejos</div>`;
+  h += `<button onclick="agregarBloque('${expr}','tabla_libre')">Tabla libre <small>n×m, columnas editables</small></button>`;
+  Object.entries(CAT.tablasTipadas).forEach(([k,v])=>{
+    h += `<button onclick="agregarBloque('${expr}','tt:${k}')">Tabla tipada: ${v.et} <small>${v.cols.join(" · ")}</small></button>`;
+  });
+  abrirMenu(ev,h);
+}
+function agregarBloque(expr,tipo){
+  cerrarMenu();
+  let b;
+  if(tipo==="texto") b={tipo:"texto",contenido:""};
+  else if(tipo==="tabla_libre") b={tipo:"tabla_libre",encabezados:["Columna 1","Columna 2"],filas:[["",""]]};
+  else if(tipo.startsWith("tt:")){ const k=tipo.slice(3); b={tipo:"tabla_tipada",plantilla:k,encabezados:CAT.tablasTipadas[k].cols.slice(),filas:[new Array(CAT.tablasTipadas[k].cols.length).fill("")]}; }
+  else if(tipo==="callout") b={tipo:"callout",estilo:"info",contenido:""};
+  else if(tipo==="codigo") b={tipo:"codigo",lenguaje:"sql",contenido:""};
+  else b={tipo:"imagen",recurso:"(pendiente)",epigrafe:""};
+  eval(expr).push(b);
+  renderDoc();
+}
+
+// ================= configuración =================
+const dlgConfig = document.getElementById("dlg-config");
+function abrirConfig(){ renderConfig(); dlgConfig.showModal(); }
+async function guardarConfig(){
+  CAT = derivar(CATALOGOS);
+  try{ await api("PUT","/api/config",CATALOGOS); }catch(e){ alert("No se pudo guardar la configuración: "+e.message); }
+  if(doc) renderDoc();
+}
+function renderConfig(){
+  const filaSec = (tipo,d,i) => `<tr>
+    <td>${d.etiqueta}${d.cfg?' <span class="mini">(agregado por config.)</span>':''}</td>
+    <td><select onchange="setNivel('${tipo}',${i},this.value)">
+      <option value="obligatoria" ${d.obligatoria?"selected":""}>Obligatoria</option>
+      <option value="recomendada" ${!d.obligatoria&&d.recomendada?"selected":""}>Recomendada</option>
+      <option value="opcional" ${!d.obligatoria&&!d.recomendada?"selected":""}>Opcional</option>
+    </select></td>
+    <td>${d.cfg?`<button onclick="quitarApartado('${tipo}',${i})">✕ quitar</button>`:'<span class="mini">de fábrica</span>'}</td>
+  </tr>`;
+  let h = "";
+  for(const tipo of ["adr","rfc"]){
+    h += `<h4>${tipo.toUpperCase()} — secciones y obligatoriedad</h4>
+    <table><tr><th>Sección</th><th>Nivel</th><th></th></tr>`;
+    CATALOGOS["secciones_"+tipo].forEach((d,i)=>{ if(d.codigo!=="custom"||d.cfg) h += filaSec(tipo,d,i); });
+    h += `</table>`;
+  }
+  h += `<h4>Agregar apartado nuevo</h4>
+  <div class="nuevo">
+    <input id="na-nombre" placeholder="Nombre del apartado (ej: Análisis de Costos FinOps)">
+    <select id="na-tipo"><option value="adr">Solo ADR</option><option value="rfc">Solo RFC</option><option value="ambos">ADR y RFC</option></select>
+    <input id="na-guia" placeholder="Texto guía para el arquitecto (opcional)" style="grid-column:1/2">
+    <select id="na-objeto">
+      <option value="">Nace con: Texto</option>
+      ${Object.entries(CAT.tablasTipadas).map(([k,v])=>`<option value="${k}">Nace con: Tabla ${v.et}</option>`).join("")}
+    </select>
+    <select id="na-nivel"><option value="opcional">Opcional</option><option value="recomendada">Recomendada</option><option value="obligatoria">Obligatoria</option></select>
+    <button class="primario" onclick="agregarApartado()">+ Agregar apartado</button>
+  </div>`;
+  document.getElementById("config-cuerpo").innerHTML = h;
+}
+function setNivel(tipo,i,v){
+  const d = CATALOGOS["secciones_"+tipo][i];
+  d.obligatoria = v==="obligatoria"; d.recomendada = v==="recomendada";
+  guardarConfig();
+}
+function agregarApartado(){
+  const nombre = document.getElementById("na-nombre").value.trim(); if(!nombre) return alert("Poné un nombre al apartado.");
+  const tipos = document.getElementById("na-tipo").value;
+  const nivel = document.getElementById("na-nivel").value;
+  const tt = document.getElementById("na-objeto").value || undefined;
+  const def = {codigo:"custom", cfg:true, etiqueta:nombre, guia:document.getElementById("na-guia").value||"",
+    obligatoria:nivel==="obligatoria", recomendada:nivel==="recomendada"};
+  if(tt) def.tabla_tipada = tt;
+  (tipos==="ambos"?["adr","rfc"]:[tipos]).forEach(tp=>{
+    const arr = CATALOGOS["secciones_"+tp];
+    arr.splice(arr.findIndex(d=>d.codigo==="anexo"), 0, {...def});
+  });
+  guardarConfig(); renderConfig();
+}
+function quitarApartado(tipo,i){
+  if(!confirm("¿Quitar este apartado del catálogo? Los documentos que ya lo usan no se ven afectados.")) return;
+  CATALOGOS["secciones_"+tipo].splice(i,1); guardarConfig(); renderConfig();
+}
+
+// ================= comentarios RFC =================
+function renderComentarios(){
+  const panel = document.getElementById("panel-comentarios");
+  if(doc.tipo!=="rfc"){ panel.classList.add("oculto"); return; }
+  panel.classList.remove("oculto");
+  const pend = doc.comentarios.filter(c=>!c.resolucion).length;
+  let h = `<h2>Comentarios de revisores (${doc.comentarios.length})</h2>`;
+  h += `<p class="mini" style="margin-bottom:10px">${pend?`<b class="pendiente-res">${pend} sin resolución</b> — no se puede cerrar el RFC hasta resolverlos.`:"Sin pendientes."}</p>`;
+  doc.comentarios.forEach((c,i)=>{
+    h += `<div class="comentario">
+      <div class="meta">#${c.num} · ${c.fecha} · <b>${c.revisor}</b> · ${c.tipo}${c.seccion?` · sobre «${c.seccion}»`:""}</div>
+      <div>${c.comentario}</div>
+      <div class="res">
+        ${c.resolucion
+          ? `<span class="estado-res resuelto">✔ ${c.resolucion}${c.detalle?": "+c.detalle:""}</span>`
+          : `<select id="res-${i}"><option value="">— resolver —</option>${CAT.resoluciones.map(r=>`<option>${r}</option>`).join("")}</select><button onclick="resolver(${i})">Aplicar</button><span class="estado-res pendiente-res">pendiente</span>`}
+      </div></div>`;
+  });
+  h += `<button style="width:100%" onclick="agregarComentario()">+ Registrar comentario de un revisor</button>`;
+  panel.innerHTML = h;
+}
+function agregarComentario(){
+  const revisor = prompt("Revisor (persona o área):","Gobierno de Datos"); if(!revisor) return;
+  const comentario = prompt("Comentario:"); if(!comentario) return;
+  const tipo = CAT.tiposComentario[doc.comentarios.length % CAT.tiposComentario.length];
+  doc.comentarios.push({num:doc.comentarios.length+1, fecha:hoy(), revisor, tipo, seccion:"", comentario});
+  renderComentarios();
+}
+function resolver(i){
+  const sel = document.getElementById("res-"+i);
+  if(!sel.value) return;
+  const c = doc.comentarios[i];
+  c.resolucion = sel.value;
+  if(sel.value==="rechazado"){
+    const d = prompt("DADM exige justificación para rechazar un comentario:"); if(!d){ c.resolucion=null; return; }
+    c.detalle = d;
+  }
+  renderComentarios();
+}
+
+// ================= serialización =================
+const dlgJson = document.getElementById("dlg-json");
+const mapBloques = bs => bs.map(b=> b.tipo==="tabla_tipada"
+  ? {tipo:b.tipo, plantilla:b.plantilla, filas:b.filas.map(f=>Object.fromEntries(b.encabezados.map((c,i)=>[c,f[i]||""])))}
+  : b);
+function serializar(){
+  const lista = s => s ? s.split("·").map(x=>({nombre:x.trim()})).filter(x=>x.nombre) : [];
+  const base = {
+    id:doc.id, tipo:doc.tipo, titulo:doc.titulo||"",
+    ...(doc.descripcion_corta && {descripcion_corta:doc.descripcion_corta}),
+    estado:doc.estado, autores:lista(doc.autores),
+    fecha_creacion:doc.fecha_creacion, version:doc.version,
+    ...(doc.tags && {tags:doc.tags.split(",").map(t=>t.trim().toLowerCase().replace(/[^a-z0-9-]/g,"-")).filter(Boolean)}),
+    historial:doc.historial,
+    cuerpo:doc.cuerpo.map(s=>({
+      codigo:s.codigo,
+      ...(s.codigo==="custom"||s.codigo==="anexo"?{titulo:s.titulo}:{}),
+      bloques:mapBloques(s.bloques),
+      ...(s.subsecciones && s.subsecciones.length ? {subsecciones:s.subsecciones.map(u=>({titulo:u.titulo, bloques:mapBloques(u.bloques)}))} : {}),
+    })),
+  };
+  if(doc.relaciones){
+    const rels = doc.relaciones.split("·").map(x=>x.trim()).filter(Boolean).map(x=>{
+      const m = x.match(/^([a-z_]+)\s*:\s*(.+)$/);
+      return m ? {tipo:m[1], destino:m[2].trim()} : {tipo:"relacionado_con", destino:x};
+    });
+    if(rels.length) base.relaciones = rels;
+  }
+  if(doc.tipo==="adr"){
+    if(doc.ambito) base.ambito = doc.ambito;
+    base.decisores = lista(doc.decisores);
+    if(doc.nota_alcance) base.nota_alcance = doc.nota_alcance;
+    base.workflow_aprobacion = lista(doc.decisores).map(d=>({decisor:d, decision:"pendiente"}));
+  } else {
+    base.sponsor = {nombre:doc.sponsor||""};
+    if(doc.ventana_desde && doc.ventana_hasta) base.ventana_comentarios = {desde:doc.ventana_desde, hasta:doc.ventana_hasta};
+    if(doc.fecha_esperada) base.fecha_esperada_decision = doc.fecha_esperada;
+    if(doc.stakeholders) base.stakeholders = doc.stakeholders.split("·").map(x=>x.trim()).filter(Boolean).map(x=>{
+      const m = x.match(/^(.*?)\s*\((requerida|opcional)[^)]*\)\s*$/i);
+      return m ? {nombre:m[1].trim(), tipo_revision:m[2].toLowerCase()} : {nombre:x};
+    });
+    base.comentarios = doc.comentarios.map(c=>({num:c.num, fecha:c.fecha, revisor:c.revisor, ...(c.seccion&&{seccion:c.seccion}), tipo:c.tipo, comentario:c.comentario, ...(c.resolucion&&{resolucion:c.resolucion}), ...(c.detalle&&{detalle_resolucion:c.detalle})}));
+    if(doc.cierre) base.cierre = doc.cierre;
+  }
+  return base;
+}
+document.getElementById("btn-json").onclick = ()=>{
+  document.getElementById("json-out").textContent = JSON.stringify(serializar(),null,2);
+  dlgJson.showModal();
+};
+function copiarJson(){ navigator.clipboard.writeText(document.getElementById("json-out").textContent); }
+
+// ================= vista documento / export =================
+const esc = s => (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;");
+function vTexto(contenido){
+  let h = "";
+  contenido.split(/\n\n/).forEach(parr=>{
+    const lineas = parr.split("\n");
+    let buf = [], enLista = false;
+    lineas.forEach(l=>{
+      if(l.trimStart().startsWith("• ")){
+        if(buf.length){ h += `<p>${esc(buf.join(" "))}</p>`; buf = []; }
+        if(!enLista){ h += "<ul>"; enLista = true; }
+        h += `<li>${esc(l.trimStart().slice(2))}</li>`;
+      } else {
+        if(enLista){ h += "</ul>"; enLista = false; }
+        buf.push(l);
+      }
+    });
+    if(enLista) h += "</ul>";
+    if(buf.length) h += `<p>${esc(buf.join(" "))}</p>`;
+  });
+  return h;
+}
+function vBloque(b){
+  if(b.tipo==="texto") return vTexto(b.contenido);
+  if(b.tipo==="callout") return `<div class="callout-v co-${b.estilo||"info"}">${b.estilo==="decision"?"<b>DECISIÓN / </b>":""}${esc(b.contenido)}</div>`;
+  if(b.tipo==="codigo") return `<div class="codigo-v">${esc(b.contenido)}</div>`;
+  if(b.tipo==="imagen") return `<p style="color:#999;border:1px dashed #ccc;padding:16px;text-align:center">🖼 ${esc(b.recurso)} ${esc(b.epigrafe||"")}</p>`;
+  if(b.tipo==="tabla_libre"||b.tipo==="tabla_tipada"){
+    let t = `<table><tr>${b.encabezados.map(c=>`<th>${esc(c)}</th>`).join("")}</tr>`;
+    b.filas.forEach(f=>{ t += `<tr>${f.map(c=>`<td>${esc(c)}</td>`).join("")}</tr>`; });
+    return t + "</table>";
+  }
+  return "";
+}
+async function exportarWord(){
+  const ok = await guardar();
+  if(ok) window.open(`/api/documentos/${doc.id}/export.docx`, "_blank");
+}
+function abrirVista(){
+  const esAdr = doc.tipo==="adr";
+  const est = CAT.estados[doc.tipo][doc.estado];
+  const fila = (l,v)=>`<tr><td class="lbl">${l}</td><td>${esc(v)||"—"}</td></tr>`;
+  let h = `<div class="barra">
+    <button class="primario" onclick="exportarWord()">⬇ Descargar Word (.docx)</button>
+    <button onclick="window.print()">🖨 Imprimir / PDF</button>
+    <button onclick="document.getElementById('vista').classList.add('oculto')">Cerrar</button>
+  </div><div class="pagina">`;
+  h += `<div class="marca-v">BANCO GALICIA &nbsp;·&nbsp; DATA & AI &nbsp;·&nbsp; ARQUITECTURA DATA</div>`;
+  h += `<div class="tipo-v">${esAdr?"ARCHITECTURE DECISION RECORD":"REQUEST FOR COMMENTS"}</div>`;
+  h += `<div class="id-v">${doc.id}</div><div class="tit-v">${esc(doc.titulo)||"&lt;Sin título&gt;"}</div>`;
+  if(doc.descripcion_corta) h += `<div class="desc-v">${esc(doc.descripcion_corta)}</div>`;
+  h += `<div class="chip-v">ESTADO: ${est.et.toUpperCase()}</div>`;
+  h += `<table>`;
+  h += fila("Identificador", doc.id) + fila("Título", doc.titulo) + fila("Estado", est.et);
+  if(esAdr){
+    const amb = CAT.ambitos.find(a=>a[0]===doc.ambito);
+    h += fila("Ámbito", amb?amb[1]:"") + fila("Autor(es)", doc.autores) + fila("Decisores / Aprobado por", doc.decisores);
+    if(doc.nota_alcance) h += fila("Nota de alcance", doc.nota_alcance);
+    if(doc.relaciones) h += fila("Relaciones", doc.relaciones);
+  } else {
+    h += fila("Autor(es)", doc.autores) + fila("Sponsor / Reviewer principal", doc.sponsor);
+    if(doc.ventana_desde) h += fila("Ventana de comentarios", `${doc.ventana_desde} — ${doc.ventana_hasta}`);
+    if(doc.fecha_esperada) h += fila("Fecha esperada de decisión", doc.fecha_esperada);
+    if(doc.stakeholders) h += fila("Stakeholders convocados", doc.stakeholders);
+  }
+  h += fila("Fecha de creación · Versión", `${doc.fecha_creacion} · v${doc.version}`);
+  if(doc.tags) h += fila("Tags", doc.tags);
+  h += `</table>`;
+  doc.cuerpo.forEach((sec,si)=>{
+    h += `<h2 class="sec-v">${si+1}. ${esc(sec.titulo)}</h2>`;
+    sec.bloques.forEach(b=>{ h += vBloque(b); });
+    (sec.subsecciones||[]).forEach((sub,ui)=>{
+      h += `<h3 class="sub-v">${si+1}.${ui+1}&nbsp;&nbsp;${esc(sub.titulo)}</h3>`;
+      sub.bloques.forEach(b=>{ h += vBloque(b); });
+    });
+  });
+  let n = doc.cuerpo.length;
+  if(!esAdr){
+    n++;
+    h += `<h2 class="sec-v">${n}. Comentarios Recibidos</h2>`;
+    h += doc.comentarios.length
+      ? `<table><tr><th>#</th><th>Fecha</th><th>Revisor</th><th>Tipo</th><th>Comentario</th><th>Resolución</th></tr>${doc.comentarios.map(c=>`<tr><td>${c.num}</td><td>${c.fecha}</td><td>${esc(c.revisor)}</td><td>${c.tipo}</td><td>${esc(c.comentario)}</td><td>${c.resolucion||"pendiente"}${c.detalle?": "+esc(c.detalle):""}</td></tr>`).join("")}</table>`
+      : `<p style="color:#7F7F7F;font-style:italic">Sin comentarios registrados.</p>`;
+    if(doc.cierre){
+      n++;
+      h += `<h2 class="sec-v">${n}. Decisión y Próximos Pasos</h2><table>${fila("Resolución", doc.cierre.resolucion)}${fila("Decidido por / Fecha", doc.cierre.decidido_por+" — "+doc.cierre.fecha)}</table>`;
+    }
+  } else {
+    n++;
+    h += `<h2 class="sec-v">${n}. Aprobación</h2><table><tr><th>Rol / Equipo</th><th>Decisión</th><th>Fecha</th></tr>${(doc.decisores||"").split("·").filter(x=>x.trim()).map(d=>`<tr><td>${esc(d.trim())}</td><td>Pendiente</td><td></td></tr>`).join("")}</table>`;
+  }
+  n++;
+  h += `<h2 class="sec-v">${n}. Historial de Cambios</h2><table><tr><th>Versión</th><th>Fecha</th><th>Autor</th><th>Cambio</th></tr>${doc.historial.map(x=>`<tr><td>${x.version}</td><td>${x.fecha}</td><td>${esc(x.autor)}</td><td>${esc(x.cambio)}</td></tr>`).join("")}</table>`;
+  h += `</div>`;
+  const v = document.getElementById("vista");
+  v.innerHTML = h; v.classList.remove("oculto"); v.scrollTop = 0;
+}
+document.getElementById("btn-vista").onclick = abrirVista;
+
+init();
+</script>
+</body>
+</html>
