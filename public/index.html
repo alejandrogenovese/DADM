@@ -349,9 +349,11 @@ let CATALOGOS = null; // catalogos.json (canónico, editable)
 let CAT = null;       // forma derivada que usa el editor
 let doc = null;
 let guardadoMsg = "";
+let fieldSeq = 0;
 const hoy = () => new Date().toISOString().slice(0,10);
 const esc  = s => (s||"").replaceAll("&","&amp;").replaceAll("<","&lt;");
 const escA = s => (s||"").replaceAll("&","&amp;").replaceAll('"','&quot;');
+const escJs = s => (s||"").replaceAll("'", String.raw`\'`);
 const api = async (metodo, ruta, body) => {
   const r = await fetch(ruta, { method: metodo, headers: {"Content-Type":"application/json"}, body: body ? JSON.stringify(body) : undefined });
   if(!r.ok){
@@ -456,6 +458,8 @@ const esAdmin = () => USUARIO && USUARIO.role === "architect_lead";
 async function init(){
   try{ USUARIO = await api("GET","/api/me"); }
   catch(e){ console.warn(e); return mostrarLogin(); }
+  CATALOGOS = await api("GET","/api/config");
+  CAT = derivar(CATALOGOS);
   document.getElementById("login").classList.add("oculto");
   document.querySelector(".shell").classList.remove("oculto");
   aplicarRol();
@@ -463,8 +467,6 @@ async function init(){
   const ed = document.getElementById("editor");
   ed.addEventListener("input", ()=>{ dirty = true; });
   ed.addEventListener("change", ()=>{ dirty = true; });
-  CATALOGOS = await api("GET","/api/config");
-  CAT = derivar(CATALOGOS);
   await renderHome();
   if(USUARIO.mustChangePassword) abrirCambioPassword(true);
 }
@@ -556,7 +558,17 @@ function seccionNueva(def, tituloCustom){
   return sec;
 }
 async function nuevoDoc(tipo){
+  if(!CAT || !CAT.secciones || !CAT.secciones[tipo]){
+    alert("DADM aún está cargando la configuración. Esperá un momento e intentá de nuevo.");
+    return;
+  }
+  const requiredSections = CAT.secciones[tipo].filter(s=>s.ob);
+  if(!requiredSections.length){
+    alert("No se pudieron determinar las secciones iniciales para " + tipo.toUpperCase() + ".");
+    return;
+  }
   const creado = await api("POST","/api/documentos",{tipo});
+  const initialDefs = requiredSections.length ? requiredSections : [{c:"custom", et:"Sección inicial", cfg:0, ob:0, subs:[], ph:""}];
   doc = {
     id:creado.id, tipo, titulo:"", descripcion_corta:"", estado:"borrador",
     ambito:"", autores:"", decisores:"", sponsor:"",
@@ -564,12 +576,20 @@ async function nuevoDoc(tipo){
     ventana_desde:"", ventana_hasta:"", fecha_esperada:"",
     fecha_creacion: creado.fecha_creacion, version: creado.version,
     historial: creado.historial, comentarios:[],
-    cuerpo: CAT.secciones[tipo].filter(s=>s.ob).map(s=>seccionNueva(s)),
+    cuerpo: initialDefs.map(s=>seccionNueva(s)),
   };
-  await guardar(true);
+  const ok = await guardar(true);
+  if(!ok){
+    alert("No se pudo crear el documento. Reintentá en unos segundos.");
+    return;
+  }
   mostrarEditor();
 }
 async function abrirDocumento(id){
+  if(!CAT || !CAT.secciones){
+    alert("DADM aún está cargando la configuración. Esperá un momento e intentá de nuevo.");
+    return;
+  }
   const j = await api("GET","/api/documentos/"+id);
   doc = deserializar(j);
   mostrarEditor();
@@ -751,7 +771,20 @@ function campo(label,req,control,opt){
   } else if(opt){
     badge = '<span class="opt">(opcional)</span>';
   }
-  return `<div class="field"><label>${label} ${badge}</label>${control}</div>`;
+  const tagMatch = control.match(/^<\s*(input|select|textarea)\b/i);
+  if(tagMatch){
+    const tag = tagMatch[1].toLowerCase();
+    const idMatch = control.match(/\bid\s*=\s*"([^"]+)"/i) || control.match(/\bid\s*=\s*'([^']+)'/i);
+    let id = idMatch ? idMatch[1] : `field-${++fieldSeq}`;
+    if(!idMatch){
+      control = control.replace(/^<\s*(input|select|textarea)\b/i, `<${tag} id="${id}"`);
+    }
+    if(!/\baria-label\s*=\s*["']/.test(control)){
+      control = control.replace(/^<\s*(input|select|textarea)(\b)/i, `<${tag} aria-label="${label}"$2`);
+    }
+    return `<div class="field"><label for="${id}">${label} ${badge}</label>${control}</div>`;
+  }
+  return `<div class="field"><div class="field-label">${label} ${badge}</div>${control}</div>`;
 }
 const inp=(k,ph)=>`<input value="${escA(doc[k])}" placeholder="${ph}" oninput="doc['${k}']=this.value">`;
 function syncTitulo(from){
@@ -778,8 +811,8 @@ function renderFicha(){
   } else {
     h += campo("Autor(es)",1,inp("autores","Nombre — Rol, Equipo"));
     h += campo("Sponsor / decisión final por",1,inp("sponsor","Ej: Gobierno de Datos"));
-    h += campo("Ventana de comentarios",0,`<div style="display:flex;gap:6px"><input type="date" value="${doc.ventana_desde}" onchange="doc.ventana_desde=this.value"><input type="date" value="${doc.ventana_hasta}" onchange="doc.ventana_hasta=this.value"></div>`,1);
-    h += campo("Fecha esperada de decisión",0,`<input type="date" value="${doc.fecha_esperada}" onchange="doc.fecha_esperada=this.value">`,1);
+    h += campo("Ventana de comentarios",0,`<div style="display:flex;gap:6px"><input type="date" aria-label="Desde" value="${doc.ventana_desde}" onchange="doc.ventana_desde=this.value"><input type="date" aria-label="Hasta" value="${doc.ventana_hasta}" onchange="doc.ventana_hasta=this.value"></div>`,1);
+    h += campo("Fecha esperada de decisión",0,`<input type="date" aria-label="Fecha esperada de decisión" value="${doc.fecha_esperada}" onchange="doc.fecha_esperada=this.value">`,1);
     h += campo("Stakeholders convocados",0,inp("stakeholders","Gobierno (requerida) · Plataforma (requerida)"),1);
   }
   h += campo("Tags",0,inp("tags","redshift, iceberg, dbt"),1);
@@ -806,7 +839,7 @@ function tagSec(def){
 function renderDoc(){
   const cont = document.getElementById("doc");
   let h = `<div class="doc-eyebrow">${doc.tipo==="adr"?"ARCHITECTURE DECISION RECORD":"REQUEST FOR COMMENTS"} · ${doc.id}</div>`;
-  h += `<input id="doc-titulo" class="doc-title" value="${escA(doc.titulo)}" placeholder="Título del documento" oninput="doc.titulo=this.value; syncTitulo('d')">`;
+  h += `<input id="doc-titulo" class="doc-title" aria-label="Título del documento" value="${escA(doc.titulo)}" placeholder="Título del documento" oninput="doc.titulo=this.value; syncTitulo('d')">`;
   doc.cuerpo.forEach((sec,si)=>{
     const def = defDe(sec);
     const base = `doc.cuerpo[${si}]`;
@@ -861,7 +894,7 @@ function renderBloque(b,expr,bi,ph){
     return `<div class="bloque">${quitar}<div class="img-box">
       ${imgHtml}
       <div style="margin:8px 0"><button class="acc-btn" onclick="subirImagen('${expr}',${bi})">${buttonLabel}</button></div>
-      <input value="${escA(b.epigrafe)}" placeholder="epígrafe…" oninput="${B}.epigrafe=this.value" style="width:60%;border:1px solid var(--border);border-radius:4px;padding:5px 8px;font:italic 400 12px var(--sans);text-align:center">
+      <input value="${escA(b.epigrafe)}" placeholder="epígrafe…" aria-label="Epígrafe de la imagen" oninput="${B}.epigrafe=this.value" style="width:60%;border:1px solid var(--border);border-radius:4px;padding:5px 8px;font:italic 400 12px var(--sans);text-align:center">
     </div></div>`;
   }
   if(b.tipo==="tabla_libre"||b.tipo==="tabla_tipada"){
