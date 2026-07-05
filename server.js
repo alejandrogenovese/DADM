@@ -1,4 +1,4 @@
-// DADM v0.1 — Data Architect Document Manager
+// DADM v1.0.0 — Data Architect Document Manager
 // API: configuración (catálogo editable) + documentos + imágenes + export Word server-side.
 // Único almacenamiento: MongoDB (base DADM). No hay base local.
 const fs = require("fs");
@@ -185,5 +185,5 @@ app.get("/api/documentos/:id/export.docx", async (req, res) => {
 
 conectarMongo()
   .then(seedConfig)
-  .then(() => app.listen(PORT, () => console.log(`DADM v0.1 escuchando en http://localhost:${PORT}`)))
+  .then(() => app.listen(PORT, () => console.log(`DADM v1.0.0 escuchando en http://localhost:${PORT}`)))
   .catch(err => { console.error("No se pudo conectar a MongoDB:", err.message); process.exit(1); });
