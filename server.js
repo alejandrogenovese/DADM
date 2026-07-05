@@ -123,25 +123,30 @@ app.delete("/api/documentos/:id", async (req, res) => {
   res.json({ ok: true });
 });
 
-// ---------- imágenes (subidas como PNG, referenciadas desde bloques tipo "imagen") ----------
-const FIRMA_PNG = "89504e470d0a1a0a";
+// ---------- imágenes (subidas como PNG/JPG, referenciadas desde bloques tipo "imagen") ----------
+function tipoImagen(buf) {
+  if (buf.subarray(0, 8).toString("hex") === "89504e470d0a1a0a") return "image/png";
+  if (buf.subarray(0, 3).toString("hex") === "ffd8ff") return "image/jpeg";
+  return null;
+}
 
 app.post("/api/imagenes", async (req, res) => {
   const { data } = req.body;
-  if (!data) return res.status(400).json({ error: "Falta 'data' (imagen PNG en base64)" });
+  if (!data) return res.status(400).json({ error: "Falta 'data' (imagen PNG/JPG en base64)" });
   const base64 = data.includes(",") ? data.split(",")[1] : data;
   const buf = Buffer.from(base64, "base64");
-  if (buf.subarray(0, 8).toString("hex") !== FIRMA_PNG) return res.status(400).json({ error: "El archivo debe ser un PNG válido" });
+  const mime = tipoImagen(buf);
+  if (!mime) return res.status(400).json({ error: "El archivo debe ser PNG o JPG" });
   const id = crypto.randomUUID();
-  await imagenes().insertOne({ _id: id, png: new Binary(buf), creado: new Date().toISOString() });
+  await imagenes().insertOne({ _id: id, data: new Binary(buf), mime, creado: new Date().toISOString() });
   res.status(201).json({ id });
 });
 
 app.get("/api/imagenes/:id", async (req, res) => {
   const img = await imagenes().findOne({ _id: req.params.id });
   if (!img) return res.status(404).end();
-  res.setHeader("Content-Type", "image/png");
-  res.send(img.png.buffer);
+  res.setHeader("Content-Type", img.mime || "image/png");
+  res.send(img.data.buffer);
 });
 
 app.delete("/api/imagenes/:id", async (req, res) => {
@@ -158,7 +163,7 @@ async function adjuntarImagenes(docu) {
   (docu.cuerpo || []).forEach(s => { recolectar(s.bloques); (s.subsecciones || []).forEach(u => recolectar(u.bloques)); });
   for (const b of bloques) {
     const img = await imagenes().findOne({ _id: b.recurso });
-    if (img) b._pngBuffer = img.png.buffer;
+    if (img) { b._imgBuffer = img.data.buffer; b._imgMime = img.mime || "image/png"; }
   }
 }
 

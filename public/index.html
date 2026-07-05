@@ -4,128 +4,187 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DADM — Data Architect Document Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --naranja:#E86A10; --naranja-suave:#FDEADA; --azul:#2E75B6; --azul-suave:#DEEBF7;
-    --gris:#7F7F7F; --borde:#D9D9D9; --fondo:#F5F4F2; --carta:#FFFFFF; --tinta:#262626;
-    --verde:#2E7D32; --rojo:#C0392B;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+    --bg:oklch(0.985 0.004 60); --ink:oklch(0.15 0.010 30);
+    --muted:oklch(0.42 0.013 40); --muted2:oklch(0.52 0.013 45); --muted3:oklch(0.65 0.012 50);
+    --border:oklch(0.88 0.008 60); --border2:oklch(0.94 0.006 60);
+    --head:oklch(0.97 0.005 60);
+    --orange:oklch(0.71 0.21 50); --orange-eyebrow:oklch(0.52 0.17 40);
+    --blue:oklch(0.55 0.12 215);
+    --side-bg:oklch(0.09 0.008 30); --side-border:oklch(0.22 0.011 30);
+    --side-text:oklch(0.78 0.010 55); --side-muted:oklch(0.52 0.013 45);
+    /* legado para la vista imprimible */
+    --naranja:oklch(0.71 0.21 50); --azul:oklch(0.55 0.12 215); --azul-suave:oklch(0.94 0.04 215);
   }
   *{box-sizing:border-box; margin:0}
-  body{font-family:-apple-system,"Segoe UI",Arial,sans-serif; background:var(--fondo); color:var(--tinta); font-size:14px}
-  header{background:#fff; border-bottom:3px solid var(--naranja); padding:10px 24px; display:flex; align-items:center; gap:12px; position:sticky; top:0; z-index:50}
-  header .app{font-weight:800; font-size:18px; color:var(--naranja); cursor:pointer}
-  header .marca{font-weight:700; letter-spacing:.06em; font-size:11px; color:var(--gris)}
-  header .sep{flex:1}
-  button{cursor:pointer; border:1px solid var(--borde); background:#fff; border-radius:6px; padding:6px 12px; font-size:13px; color:var(--tinta)}
-  button:hover{border-color:var(--naranja); color:var(--naranja)}
-  button.primario{background:var(--naranja); border-color:var(--naranja); color:#fff; font-weight:600}
-  button.primario:hover{opacity:.9; color:#fff}
-  .layout{display:grid; grid-template-columns:340px 1fr; gap:20px; max-width:1280px; margin:20px auto; padding:0 24px}
-  .panel{background:var(--carta); border:1px solid var(--borde); border-radius:10px; padding:18px}
-  .panel h2{font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:var(--gris); margin-bottom:12px}
-  .campo{margin-bottom:12px}
-  .campo label{display:block; font-size:12px; font-weight:600; margin-bottom:3px}
-  .campo label .req{color:var(--naranja)}
-  .campo label .opt{color:var(--gris); font-weight:400}
-  .campo input,.campo select,.campo textarea{width:100%; border:1px solid var(--borde); border-radius:6px; padding:6px 8px; font-size:13px; font-family:inherit; background:#fff}
-  .campo .auto{background:#F2F2F2; color:var(--gris); font-style:italic}
-  .chip{display:inline-block; padding:3px 10px; border-radius:99px; font-size:12px; font-weight:700}
-  .chip.borrador{background:#EEE; color:#555}
-  .chip.en_revision,.chip.en_comentarios{background:var(--naranja-suave); color:var(--naranja)}
-  .chip.aprobado,.chip.cerrado{background:#E8F5E9; color:var(--verde)}
-  .chip.rechazado,.chip.reemplazado,.chip.obsoleto{background:#FBE4E0; color:var(--rojo)}
-  .doc{background:var(--carta); border:1px solid var(--borde); border-radius:10px; padding:28px 34px; min-height:70vh}
-  .doc .tipo-doc{color:var(--naranja); font-weight:700; font-size:12px; letter-spacing:.08em}
-  .doc h1.titulo{font-size:24px; margin:4px 0 18px; outline:none}
-  .doc h1.titulo:empty:before{content:"<Título del documento>"; color:#BBB}
-  .seccion{border:1px solid transparent; border-radius:8px; padding:10px 12px; margin:0 -12px 6px}
-  .seccion:hover{border-color:var(--borde); background:#FDFCFB}
-  .seccion .cab{display:flex; align-items:center; gap:8px}
-  .seccion .cab h3{font-size:16px}
-  .seccion .cab h4{font-size:14px}
-  .tag{font-size:10px; font-weight:700; padding:2px 7px; border-radius:4px; letter-spacing:.04em}
-  .tag.oblig{background:var(--naranja-suave); color:var(--naranja)}
-  .tag.opc{background:#EEE; color:var(--gris)}
-  .tag.rec{background:var(--azul-suave); color:var(--azul)}
-  .seccion .cab .acciones{margin-left:auto; opacity:0; display:flex; gap:6px}
-  .seccion:hover .cab .acciones{opacity:1}
-  .seccion .cab .acciones button{padding:2px 8px; font-size:12px}
-  .bloque{margin:8px 0; position:relative}
-  .bloque .btx{min-height:34px; padding:6px 8px; border:1px dashed transparent; border-radius:6px; outline:none; line-height:1.5}
-  .bloque .btx:hover,.bloque .btx:focus{border-color:var(--borde); background:#fff}
-  .bloque .btx:empty:before{content:attr(data-ph); color:#BBB; font-style:italic}
-  .bloque.callout .btx{background:var(--azul-suave); border-left:4px solid var(--azul); color:#1F4E79; border-radius:4px}
-  .bloque.codigo .btx{background:#2B2B2B; color:#E8E8E8; font-family:ui-monospace,Consolas,monospace; font-size:12.5px; border-radius:6px; white-space:pre-wrap}
-  .bloque .quitar{position:absolute; top:2px; right:2px; border:none; background:none; color:#BBB; font-size:14px; padding:2px 6px; opacity:0}
-  .bloque:hover .quitar{opacity:1}
-  .bloque .quitar:hover{color:var(--rojo)}
-  table.tbl{border-collapse:collapse; width:100%; margin:4px 0}
-  table.tbl th,table.tbl td{border:1px solid var(--borde); padding:5px 8px; font-size:13px; text-align:left}
-  table.tbl th{background:#F2F2F2}
-  table.tbl td[contenteditable]:focus{background:#FFFBEF; outline:1px solid var(--naranja)}
-  table.tbl th[contenteditable]:focus{outline:1px solid var(--naranja)}
-  .mini{font-size:12px; color:var(--gris)}
-  .add-fila{margin-top:2px}
-  .barra-agregar{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap}
-  .menu{position:absolute; background:#fff; border:1px solid var(--borde); border-radius:8px; box-shadow:0 6px 24px rgba(0,0,0,.12); padding:6px; z-index:100; min-width:260px; max-height:60vh; overflow:auto}
-  .menu button{display:block; width:100%; text-align:left; border:none; padding:7px 10px; border-radius:6px}
-  .menu button:hover{background:var(--naranja-suave)}
-  .menu button small{display:block; color:var(--gris); font-weight:400}
-  .menu .grupo{font-size:10px; text-transform:uppercase; color:var(--gris); padding:6px 10px 2px; letter-spacing:.06em}
-  dialog{border:none; border-radius:12px; padding:0; max-width:820px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,.25)}
-  dialog::backdrop{background:rgba(0,0,0,.35)}
-  dialog .cab{display:flex; align-items:center; padding:14px 20px; border-bottom:1px solid var(--borde)}
-  dialog .cab h3{font-size:15px}
-  dialog .cab button{margin-left:auto}
-  dialog pre{padding:16px 20px; max-height:60vh; overflow:auto; font-size:12px; background:#2B2B2B; color:#D7F0D7; margin:0}
-  dialog .pie{padding:12px 20px; display:flex; gap:8px; justify-content:flex-end; align-items:center}
-  .comentario{border:1px solid var(--borde); border-radius:8px; padding:10px; margin-bottom:8px; background:#fff}
-  .comentario .meta{font-size:11px; color:var(--gris); margin-bottom:4px}
-  .comentario .res{margin-top:6px; display:flex; gap:6px; align-items:center; flex-wrap:wrap}
-  .comentario select{font-size:12px; padding:3px 6px; border:1px solid var(--borde); border-radius:5px}
-  .comentario .estado-res{font-size:11px; font-weight:700}
-  .pendiente-res{color:var(--rojo)} .resuelto{color:var(--verde)}
-  .home{max-width:900px; margin:40px auto; padding:0 24px}
-  .home .cards{display:flex; gap:16px; margin:20px 0 30px}
-  .home .card{background:#fff; border:1px solid var(--borde); border-radius:12px; padding:20px; width:260px; cursor:pointer}
-  .home .card:hover{border-color:var(--naranja); box-shadow:0 8px 30px rgba(232,106,16,.12)}
-  .home .card h3{color:var(--naranja); margin-bottom:4px}
-  .home table{border-collapse:collapse; width:100%; background:#fff; border-radius:10px; overflow:hidden}
-  .home th,.home td{border-bottom:1px solid var(--borde); padding:10px 14px; font-size:13px; text-align:left}
-  .home th{background:#F2F2F2; font-size:11px; text-transform:uppercase; letter-spacing:.05em}
-  .home tr.fila:hover{background:var(--naranja-suave); cursor:pointer}
+  body{font-family:var(--sans); background:var(--bg); color:var(--ink); font-size:14px}
+  textarea,input,select,button{font-family:inherit}
   .oculto{display:none !important}
-  .nota-dadm{font-size:11px; color:var(--azul); background:var(--azul-suave); border-radius:6px; padding:6px 10px; margin-top:8px}
-  #guardado{font-size:12px; color:var(--verde)}
-  #dlg-config .cuerpo{padding:16px 20px; max-height:65vh; overflow:auto}
-  #dlg-config table{border-collapse:collapse; width:100%; margin-bottom:14px}
-  #dlg-config th,#dlg-config td{border:1px solid var(--borde); padding:5px 8px; font-size:13px; text-align:left}
-  #dlg-config th{background:#F2F2F2}
-  #dlg-config h4{margin:10px 0 6px; color:var(--naranja)}
-  #dlg-config .nuevo{background:#FAFAF8; border:1px solid var(--borde); border-radius:8px; padding:12px; display:grid; grid-template-columns:1fr 1fr; gap:8px}
-  #dlg-config .nuevo input,#dlg-config .nuevo select{border:1px solid var(--borde); border-radius:6px; padding:6px 8px; font-size:13px}
-  #vista{position:fixed; inset:0; background:#777; overflow:auto; z-index:200; padding:24px 0}
+
+  .shell{display:flex; height:100vh; width:100%; overflow:hidden}
+
+  /* sidebar */
+  .sidebar{width:220px; flex-shrink:0; background:var(--side-bg); color:var(--bg); display:flex; flex-direction:column; padding:16px 12px; border-right:1px solid var(--side-border)}
+  .brand{display:flex; align-items:center; gap:10px; padding:4px 8px 16px; border-bottom:1px solid var(--side-border); margin-bottom:10px}
+  .brand .ic{color:var(--orange); flex-shrink:0}
+  .brand .nm{font:600 15px/1.1 var(--sans); letter-spacing:-0.01em; color:#fff}
+  .brand .sub{font:500 10px/1 var(--mono); color:var(--muted3); margin-top:4px; letter-spacing:.04em}
+  .nav{display:flex; flex-direction:column; gap:2px; flex:1}
+  .nav-btn{display:flex; align-items:center; gap:10px; padding:8px 10px; font:500 13px var(--sans); color:var(--side-text); background:transparent; border:0; border-radius:5px; cursor:pointer; text-align:left; width:100%}
+  .nav-btn:hover{background:oklch(0.22 0.011 30)}
+  .nav-btn.active{color:#fff; background:color-mix(in oklch, var(--orange), transparent 75%)}
+  .side-foot{border-top:1px solid var(--side-border); padding-top:10px; font:400 10.5px var(--mono); color:var(--side-muted)}
+
+  .main{flex:1; display:flex; flex-direction:column; min-width:0; min-height:0; overflow:hidden}
+  .content{flex:1; overflow:auto; min-height:0}
+
+  /* topbar (editor) */
+  .topbar{height:56px; flex-shrink:0; display:flex; align-items:center; gap:14px; padding:0 20px; background:#fff; border-bottom:1px solid var(--border); overflow-x:auto}
+  .tb-tipo{font:600 11px var(--mono); letter-spacing:.04em; color:var(--orange-eyebrow); text-transform:uppercase; white-space:nowrap}
+  .tb-ver{font:400 12px var(--mono); color:var(--muted2); white-space:nowrap}
+  .tb-saved{font:400 12px var(--sans); color:oklch(0.45 0.10 150); white-space:nowrap}
+  .tb-actions{display:flex; gap:8px; flex-shrink:0}
+
+  /* botones */
+  .btn,.btn-primary,.btn-ghost{display:inline-flex; align-items:center; gap:6px; font:500 13px var(--sans); padding:8px 13px; border-radius:4px; cursor:pointer; white-space:nowrap}
+  .btn{border:1px solid var(--border); background:#fff; color:var(--ink)}
+  .btn:hover{border-color:var(--muted3)}
+  .btn-primary{border:1px solid transparent; background:var(--orange); color:#fff; padding:8px 14px}
+  .btn-primary:hover{filter:brightness(1.05)}
+  .btn-ghost{border:0; background:transparent; color:oklch(0.32 0.012 35)}
+  .btn-ghost:hover{background:var(--head)}
+
+  /* chips y tags */
+  .chip{display:inline-flex; align-items:center; padding:3px 10px; border-radius:999px; font:600 11px var(--sans); letter-spacing:.03em; text-transform:uppercase; white-space:nowrap}
+  .tag{font:700 10px var(--sans); padding:2px 7px; border-radius:4px; letter-spacing:.04em}
+
+  /* home */
+  .home{padding:32px 40px 60px}
+  .eyebrow{display:inline-flex; gap:6px; align-items:center; font:600 10.5px var(--sans); letter-spacing:.06em; text-transform:uppercase; color:var(--orange-eyebrow); margin-bottom:8px}
+  .home h1{font:600 29px/1.2 var(--sans); letter-spacing:-0.012em; margin:0 0 6px}
+  .home .lead{font:400 13.5px/1.5 var(--sans); color:var(--muted); max-width:70ch; margin-bottom:22px}
+  .cards{display:flex; gap:14px; margin-bottom:30px}
+  .card{cursor:pointer; flex:1; max-width:280px; padding:18px 20px; background:#fff; border:1px solid var(--border); border-radius:8px; transition:border-color 120ms, box-shadow 120ms}
+  .card:hover{border-color:var(--orange); box-shadow:0 8px 30px -12px oklch(0.71 0.21 50 / 0.25)}
+  .card .ct{display:flex; align-items:center; gap:8px; margin-bottom:6px}
+  .card .ct .ic{color:var(--orange-eyebrow)}
+  .card.rfc .ct .ic{color:var(--blue)}
+  .card .ct b{font:600 14px var(--sans)}
+  .card .cd{font:400 12.5px/1.5 var(--sans); color:var(--muted)}
+  .tabla-docs{width:100%; border-collapse:separate; border-spacing:0; background:#fff; border:1px solid var(--border); border-radius:8px; overflow:hidden}
+  .tabla-docs th{text-align:left; padding:11px 14px; font:600 11px var(--sans); letter-spacing:.05em; text-transform:uppercase; color:var(--muted2); background:var(--head); border-bottom:1px solid var(--border)}
+  .tabla-docs td{padding:11px 14px; border-bottom:1px solid var(--border2); font:400 13px var(--sans); color:var(--ink)}
+  .tabla-docs tr.fila{cursor:pointer}
+  .tabla-docs tr.fila:hover td{background:var(--bg)}
+  .tabla-docs .cid{font:500 12.5px var(--mono)}
+  .tabla-docs .cmono{font:400 12px var(--mono); color:var(--muted)}
+  .tabla-docs .cmut{color:var(--muted)}
+  .tabla-docs .sin{color:var(--muted3); font-style:italic}
+  .tabla-docs .empty{padding:26px 14px; color:var(--muted3); font-style:italic}
+
+  /* editor */
+  .editor-grid{display:grid; grid-template-columns:360px 1fr; gap:20px; padding:20px 24px; align-items:start}
+  .panel{background:#fff; border:1px solid var(--border); border-radius:8px; padding:18px}
+  .panel-h{font:600 12px var(--sans); text-transform:uppercase; letter-spacing:.06em; color:var(--muted2); margin-bottom:14px}
+  .field{margin-bottom:13px}
+  .field label{display:block; font:600 12px var(--sans); margin-bottom:4px; color:var(--ink)}
+  .field .req{color:var(--orange-eyebrow)}
+  .field .opt{color:var(--muted3); font-weight:400}
+  .panel input,.panel select,.panel textarea{width:100%; border:1px solid var(--border); border-radius:4px; padding:7px 9px; font:400 13px var(--sans); background:#fff; color:var(--ink)}
+  .panel input.auto{background:var(--head); color:var(--muted2); font-style:italic}
+  .nota{font-size:11px; color:var(--blue); background:oklch(0.94 0.04 215); border-radius:6px; padding:7px 10px; margin-top:4px}
+
+  .doc-panel{background:#fff; border:1px solid var(--border); border-radius:8px; padding:30px 36px; min-height:70vh}
+  .doc-eyebrow{font:600 11px var(--mono); letter-spacing:.06em; text-transform:uppercase; color:var(--orange-eyebrow); margin-bottom:6px}
+  .doc-title{width:100%; border:0; outline:none; font:600 28px/1.25 var(--sans); letter-spacing:-0.01em; color:var(--ink); margin:2px 0 20px; padding:2px 0}
+  .doc-title::placeholder{color:var(--muted3)}
+
+  .seccion{border:1px solid transparent; border-radius:6px; padding:8px 10px; margin:0 -10px 4px}
+  .seccion:hover{border-color:var(--border2)}
+  .sec-cab{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+  .sec-cab h3{font:600 16px var(--sans); margin:0}
+  .sec-cab h4{font:600 14px var(--sans); margin:0}
+  .acc{margin-left:auto; display:flex; gap:6px}
+  .acc-btn{font:500 11.5px var(--sans); padding:3px 9px; border-radius:4px; border:1px solid var(--border); background:#fff; cursor:pointer; color:oklch(0.32 0.012 35)}
+  .acc-btn:hover{border-color:var(--muted3)}
+  .acc-btn.danger{border-color:oklch(0.90 0.05 25); color:oklch(0.42 0.13 25)}
+  .subsec{margin:12px 0 6px 16px; border-left:3px solid var(--border); padding-left:14px}
+
+  /* bloques */
+  .bloque{position:relative; margin:8px 0}
+  .bloque .quitar{position:absolute; top:-4px; right:-4px; border:0; background:none; color:var(--muted3); font-size:15px; padding:2px 6px; cursor:pointer; z-index:2; opacity:0}
+  .bloque:hover .quitar{opacity:1}
+  .bloque .quitar:hover{color:oklch(0.42 0.13 25)}
+  .btx{width:100%; min-height:44px; padding:8px 10px; border:1px solid transparent; border-radius:6px; outline:none; font:400 14px/1.5 var(--sans); color:var(--ink); white-space:pre-wrap}
+  .btx:hover{border-color:var(--border)}
+  .btx:focus{border-color:var(--orange); background:#fff}
+  .btx:empty:before{content:attr(data-ph); color:var(--muted3); font-style:italic}
+  .btx.callout{border:0; border-radius:4px}
+  .btx.callout:focus{border:0}
+  .btx.codigo{border:0; border-radius:6px; font:400 12.5px/1.6 var(--mono); color:oklch(0.985 0.004 60); background:oklch(0.15 0.010 30)}
+  .btx.codigo:focus{border:0}
+  .pills{display:flex; gap:8px; margin-bottom:6px}
+  .pill{font:500 11px var(--sans); padding:3px 9px; border-radius:999px; border:1px solid; cursor:pointer}
+  .img-box{text-align:center; color:var(--muted3); border:1px dashed var(--border); border-radius:6px; padding:16px}
+  table.tbl{border-collapse:collapse; width:100%; margin:4px 0}
+  table.tbl th,table.tbl td{border:1px solid var(--border); padding:5px 8px; font:400 13px var(--sans); text-align:left; color:var(--ink)}
+  table.tbl th{background:var(--head); font-weight:600}
+  table.tbl td:focus,table.tbl th:focus{outline:1px solid var(--orange); background:#fff}
+  .link-btn{font:400 12px var(--sans); color:var(--muted); background:none; border:0; cursor:pointer; padding:2px 0}
+  .link-btn:hover{color:var(--ink)}
+
+  /* menú flotante */
+  .menu{position:absolute; background:#fff; border:1px solid var(--border); border-radius:8px; box-shadow:0 8px 24px -8px oklch(0 0 0/0.18); padding:6px; z-index:100; min-width:260px; max-height:60vh; overflow:auto}
+  .menu button{display:block; width:100%; text-align:left; border:0; background:transparent; padding:7px 10px; border-radius:6px; cursor:pointer; font:400 13px var(--sans); color:var(--ink)}
+  .menu button:hover{background:var(--head)}
+  .menu button small{display:block; color:var(--muted3); font-weight:400}
+  .menu .grupo{font:600 10px var(--sans); text-transform:uppercase; color:var(--muted2); padding:6px 10px 2px; letter-spacing:.06em}
+
+  /* diálogos */
+  dialog{border:0; border-radius:12px; padding:0; max-width:900px; width:92%; box-shadow:0 20px 60px oklch(0 0 0/0.25)}
+  dialog::backdrop{background:oklch(0 0 0/0.4)}
+  .dlg-cab{display:flex; align-items:center; padding:16px 22px; border-bottom:1px solid var(--border)}
+  .dlg-cab h3{font:600 15px var(--sans); margin:0}
+  .dlg-cab .x{margin-left:auto}
+  .dlg-body{padding:18px 22px; overflow:auto; max-height:65vh}
+  .dlg-pie{padding:12px 22px; border-top:1px solid var(--border); display:flex; gap:8px; justify-content:flex-end; align-items:center}
+  #json-out{padding:16px 20px; max-height:60vh; overflow:auto; font:400 12px var(--mono); background:oklch(0.15 0.010 30); color:oklch(0.985 0.004 60); margin:0; white-space:pre-wrap}
+  .cfg-h{margin:12px 0 8px; color:var(--orange-eyebrow); font:600 14px var(--sans)}
+  .cfg-table{border-collapse:collapse; width:100%; margin-bottom:16px}
+  .cfg-table th,.cfg-table td{border:1px solid var(--border); padding:6px 9px; font:400 13px var(--sans); text-align:left}
+  .cfg-table th{background:var(--head); font-weight:600}
+  .cfg-nuevo{background:var(--head); border:1px solid var(--border); border-radius:8px; padding:14px; display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  .cfg-nuevo input,.cfg-nuevo select{border:1px solid var(--border); border-radius:4px; padding:7px 9px; font:400 13px var(--sans)}
+
+  /* vista imprimible */
+  #vista{position:fixed; inset:0; background:oklch(0.42 0.013 40); overflow:auto; z-index:200; padding:24px 0}
   #vista .barra{position:sticky; top:0; text-align:center; margin-bottom:14px; z-index:210}
-  #vista .barra button{margin:0 4px; box-shadow:0 2px 8px rgba(0,0,0,.3)}
-  #vista .pagina{background:#fff; width:794px; margin:0 auto; padding:60px 68px; font-size:14px; line-height:1.45; color:#262626; box-shadow:0 4px 24px rgba(0,0,0,.35)}
-  #vista .marca-v{color:#7F7F7F; font-size:11px; letter-spacing:.05em; border-bottom:2px solid var(--naranja); padding-bottom:4px}
-  #vista .tipo-v{color:var(--naranja); font-weight:700; font-size:15px; margin-top:18px}
-  #vista .id-v{font-size:30px; font-weight:800; margin:2px 0}
-  #vista .tit-v{font-size:20px; font-weight:700; margin-bottom:4px}
-  #vista .desc-v{color:#7F7F7F; font-size:13px; margin-bottom:14px}
-  #vista .chip-v{background:#FDEADA; color:var(--naranja); font-weight:700; text-align:center; padding:6px; margin-bottom:14px}
+  #vista .barra button{margin:0 4px; box-shadow:0 2px 8px oklch(0 0 0/0.3)}
+  #vista .pagina{background:#fff; width:794px; margin:0 auto; padding:60px 68px; font:400 14px/1.45 var(--sans); color:var(--ink); box-shadow:0 4px 24px oklch(0 0 0/0.35)}
+  #vista .marca-v{color:var(--muted2); font:500 11px var(--mono); letter-spacing:.05em; border-bottom:2px solid var(--orange); padding-bottom:6px}
+  #vista .tipo-v{color:var(--orange-eyebrow); font:700 15px var(--sans); margin-top:20px}
+  #vista .id-v{font:700 30px var(--sans); margin:2px 0}
+  #vista .tit-v{font:700 20px var(--sans); margin-bottom:4px}
+  #vista .desc-v{color:var(--muted2); font:400 13px var(--sans); margin-bottom:14px}
+  #vista .chip-v{background:oklch(0.93 0.07 50); color:var(--orange-eyebrow); font:700 13px var(--sans); text-align:center; padding:7px; margin-bottom:14px}
   #vista table{border-collapse:collapse; width:100%; margin:8px 0}
-  #vista th,#vista td{border:1px solid #BFBFBF; padding:5px 8px; font-size:12.5px; text-align:left; vertical-align:top}
-  #vista th{background:#F2F2F2}
-  #vista td.lbl{background:#F2F2F2; font-weight:700; width:30%}
+  #vista th,#vista td{border:1px solid oklch(0.75 0 0); padding:5px 8px; font-size:12.5px; text-align:left; vertical-align:top}
+  #vista th{background:oklch(0.95 0 0)}
+  #vista td.lbl{background:oklch(0.95 0 0); font-weight:700; width:30%}
   #vista h2.sec-v{font-size:17px; margin:22px 0 8px}
   #vista h3.sub-v{font-size:14.5px; margin:14px 0 6px}
   #vista .callout-v{padding:8px 12px; margin:8px 0; font-size:13px; border-radius:3px}
-  #vista .co-cita{background:var(--azul-suave); color:#1F4E79; font-style:italic}
-  #vista .co-decision{background:#FDEADA; color:#7A4510}
-  #vista .co-advertencia{background:#FBE4E0; color:#9C3325}
-  #vista .co-info{background:var(--azul-suave); color:#1F4E79}
-  #vista .codigo-v{background:#2B2B2B; color:#E8E8E8; font-family:ui-monospace,Consolas,monospace; font-size:12px; padding:10px; white-space:pre-wrap; border-radius:4px; margin:8px 0}
+  #vista .co-cita{background:oklch(0.94 0.006 60); color:oklch(0.32 0.012 35); font-style:italic}
+  #vista .co-decision{background:oklch(0.93 0.07 50); color:oklch(0.32 0.10 35)}
+  #vista .co-advertencia{background:oklch(0.90 0.05 25); color:oklch(0.42 0.13 25)}
+  #vista .co-info{background:oklch(0.94 0.04 215); color:oklch(0.32 0.012 35)}
+  #vista .codigo-v{background:oklch(0.15 0.010 30); color:oklch(0.985 0.004 60); font-family:var(--mono); font-size:12px; padding:10px; white-space:pre-wrap; border-radius:4px; margin:8px 0}
   #vista p{margin:6px 0}
   #vista ul{margin:6px 0 6px 22px}
   @media print{
@@ -138,61 +197,103 @@
 </head>
 <body>
 
-<header>
-  <span class="app" onclick="irHome()">DADM</span>
-  <span class="marca">DATA ARCHITECT DOCUMENT MANAGER · ARQUITECTURA DATA · BANCO GALICIA</span>
-  <span class="sep"></span>
-  <span id="guardado"></span>
-  <span id="hdr-estado" class="oculto"></span>
-  <button id="btn-transicion" class="oculto"></button>
-  <button id="btn-guardar" class="oculto primario">💾 Guardar y volver</button>
-  <button id="btn-vista" class="oculto">Vista / Exportar</button>
-  <button id="btn-json" class="oculto">Ver JSON</button>
-  <button id="btn-config" onclick="abrirConfig()">⚙ Configuración</button>
-</header>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <svg class="ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+      <div><div class="nm">DADM</div><div class="sub">ARQUITECTURA DATA</div></div>
+    </div>
+    <nav class="nav">
+      <button id="nav-docs" class="nav-btn active" onclick="irHome()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/><path d="M14 4h7"/><path d="M14 9h7"/><path d="M14 15h7"/><path d="M14 20h7"/></svg>
+        <span>Documentos</span>
+      </button>
+      <button class="nav-btn" onclick="abrirConfig()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+        <span>Configuración</span>
+      </button>
+    </nav>
+    <div class="side-foot">DADM v0.1 · Banco Galicia</div>
+  </aside>
 
-<div class="home" id="home">
-  <h1 style="font-size:24px">Documentos de Arquitectura</h1>
-  <div class="cards">
-    <div class="card" onclick="nuevoDoc('adr')"><h3>+ Nuevo ADR</h3><span class="mini">Architecture Decision Record — registra una decisión tomada.</span></div>
-    <div class="card" onclick="nuevoDoc('rfc')"><h3>+ Nuevo RFC</h3><span class="mini">Request for Comments — propuesta abierta al debate.</span></div>
+  <div class="main">
+    <div id="topbar" class="topbar oculto"></div>
+    <div class="content">
+      <div class="home" id="home">
+        <div class="eyebrow">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>
+          ARQUITECTURA DATA
+        </div>
+        <h1>Documentos de Arquitectura</h1>
+        <div class="lead">ADR (Architecture Decision Record) y RFC (Request for Comments) con el formato oficial del equipo.</div>
+        <div class="cards">
+          <div class="card" onclick="nuevoDoc('adr')">
+            <div class="ct"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg><b>Nuevo ADR</b></div>
+            <div class="cd">Architecture Decision Record — registra una decisión tomada.</div>
+          </div>
+          <div class="card rfc" onclick="nuevoDoc('rfc')">
+            <div class="ct"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg><b>Nuevo RFC</b></div>
+            <div class="cd">Request for Comments — propuesta abierta al debate.</div>
+          </div>
+        </div>
+        <table class="tabla-docs">
+          <thead><tr><th>ID</th><th>Título</th><th>Tipo</th><th>Estado</th><th>Versión</th><th>Actualizado</th></tr></thead>
+          <tbody id="lista-docs"></tbody>
+        </table>
+      </div>
+
+      <div class="editor-grid oculto" id="editor">
+        <div>
+          <div class="panel" id="panel-ficha"></div>
+          <div class="panel oculto" id="panel-comentarios" style="margin-top:16px"></div>
+        </div>
+        <div class="doc-panel" id="doc"></div>
+      </div>
+    </div>
   </div>
-  <table id="lista-docs"></table>
 </div>
 
-<div class="layout oculto" id="editor">
-  <div>
-    <div class="panel" id="panel-ficha"></div>
-    <div class="panel oculto" id="panel-comentarios" style="margin-top:16px"></div>
-  </div>
-  <div class="doc" id="doc"></div>
-</div>
+<dialog id="dlg-config">
+  <div class="dlg-cab"><h3>Configuración del catálogo — administración DADM</h3><button class="btn x" onclick="dlgConfig.close()">Cerrar</button></div>
+  <div class="dlg-body" id="config-cuerpo"></div>
+  <div class="dlg-pie"><span style="font:400 12px var(--sans);color:var(--muted3);margin-right:auto">Los cambios se guardan en el servidor y aplican a los documentos nuevos.</span><button class="btn-primary" onclick="dlgConfig.close()">Listo</button></div>
+</dialog>
 
-<dialog id="dlg-config" style="max-width:900px">
-  <div class="cab"><h3>⚙ Configuración del catálogo — administración DADM</h3><button onclick="dlgConfig.close()">Cerrar</button></div>
-  <div class="cuerpo" id="config-cuerpo"></div>
-  <div class="pie"><span class="mini" style="margin-right:auto">Los cambios se guardan en el servidor y aplican a los documentos nuevos.</span><button class="primario" onclick="dlgConfig.close()">Listo</button></div>
+<dialog id="dlg-json">
+  <div class="dlg-cab"><h3>Documento serializado (contrato adr/rfc.schema.json)</h3><button class="btn x" onclick="dlgJson.close()">Cerrar</button></div>
+  <pre id="json-out"></pre>
+  <div class="dlg-pie"><button class="btn" onclick="copiarJson()">Copiar</button></div>
 </dialog>
 
 <div id="vista" class="oculto"></div>
-
-<dialog id="dlg-json">
-  <div class="cab"><h3>Documento serializado (contrato adr/rfc.schema.json)</h3><button onclick="dlgJson.close()">Cerrar</button></div>
-  <pre id="json-out"></pre>
-  <div class="pie"><button onclick="copiarJson()">Copiar</button></div>
-</dialog>
-
 
 <script>
 // ================= configuración remota =================
 let CATALOGOS = null; // catalogos.json (canónico, editable)
 let CAT = null;       // forma derivada que usa el editor
 let doc = null;
+let guardadoMsg = "";
 const hoy = () => new Date().toISOString().slice(0,10);
+const esc  = s => (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const escA = s => (s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;");
 const api = async (metodo, ruta, body) => {
   const r = await fetch(ruta, { method: metodo, headers: {"Content-Type":"application/json"}, body: body?JSON.stringify(body):undefined });
   if(!r.ok){ const e = await r.json().catch(()=>({})); throw new Error(e.error ? e.error + (e.faltan?": "+e.faltan.join(", "):"") : "Error "+r.status); }
   return r.json();
+};
+
+// colores de estado y callouts (rediseño)
+function estadoColor(estado){
+  if(["aprobado","cerrado"].includes(estado)) return {bg:"oklch(0.90 0.07 150)", fg:"oklch(0.45 0.10 150)"};
+  if(["en_revision","en_comentarios"].includes(estado)) return {bg:"oklch(0.92 0.10 95)", fg:"oklch(0.55 0.12 95)"};
+  if(["rechazado","reemplazado","obsoleto"].includes(estado)) return {bg:"oklch(0.90 0.05 25)", fg:"oklch(0.42 0.13 25)"};
+  return {bg:"oklch(0.94 0.006 60)", fg:"oklch(0.42 0.013 40)"};
+}
+const CALLOUT = {
+  info:        {bg:"oklch(0.94 0.04 215)", fg:"oklch(0.32 0.012 35)", bar:"oklch(0.55 0.12 215)", label:"Info"},
+  decision:    {bg:"oklch(0.93 0.07 50)",  fg:"oklch(0.32 0.10 35)",  bar:"oklch(0.71 0.21 50)",  label:"Decisión"},
+  advertencia: {bg:"oklch(0.90 0.05 25)",  fg:"oklch(0.42 0.13 25)",  bar:"oklch(0.58 0.16 25)",  label:"Advertencia"},
+  cita:        {bg:"oklch(0.94 0.006 60)", fg:"oklch(0.32 0.012 35)", bar:"oklch(0.65 0.012 50)", label:"Cita"},
 };
 
 // guías de redacción (UX del editor; no son configuración)
@@ -243,16 +344,26 @@ async function init(){
 async function renderHome(){
   const docs = await api("GET","/api/documentos");
   const tb = document.getElementById("lista-docs");
-  if(!docs.length){ tb.innerHTML = `<tr><td class="mini" style="padding:20px">Todavía no hay documentos. Creá el primero con las tarjetas de arriba.</td></tr>`; return; }
-  tb.innerHTML = `<tr><th>ID</th><th>Título</th><th>Tipo</th><th>Estado</th><th>Versión</th><th>Actualizado</th></tr>` +
-    docs.map(d=>`<tr class="fila" onclick="abrirDocumento('${d.id}')"><td><b>${d.id}</b></td><td>${d.titulo||"<i class='mini'>sin título</i>"}</td><td>${d.tipo.toUpperCase()}</td><td><span class="chip ${d.estado}">${(CAT.estados[d.tipo][d.estado]||{}).et||d.estado}</span></td><td>v${d.version||"0.1"}</td><td class="mini">${d.actualizado||""}</td></tr>`).join("");
+  if(!docs.length){ tb.innerHTML = `<tr><td class="empty" colspan="6">Todavía no hay documentos. Creá el primero con las tarjetas de arriba.</td></tr>`; return; }
+  tb.innerHTML = docs.map(d=>{
+    const c = estadoColor(d.estado);
+    const et = (CAT.estados[d.tipo][d.estado]||{}).et||d.estado;
+    return `<tr class="fila" onclick="abrirDocumento('${d.id}')">
+      <td class="cid"><b>${d.id}</b></td>
+      <td>${d.titulo?esc(d.titulo):"<span class='sin'>(sin título)</span>"}</td>
+      <td class="cmut">${d.tipo.toUpperCase()}</td>
+      <td><span class="chip" style="background:${c.bg};color:${c.fg}">${et}</span></td>
+      <td class="cmono">v${d.version||"0.1"}</td>
+      <td class="cmono">${d.actualizado||""}</td>
+    </tr>`;
+  }).join("");
 }
 function irHome(){
   document.getElementById("editor").classList.add("oculto");
+  document.getElementById("topbar").classList.add("oculto");
   document.getElementById("home").classList.remove("oculto");
-  ["btn-json","hdr-estado","btn-transicion","btn-vista","btn-guardar"].forEach(i=>document.getElementById(i).classList.add("oculto"));
-  document.getElementById("guardado").textContent = "";
-  doc = null; renderHome();
+  document.getElementById("nav-docs").classList.add("active");
+  guardadoMsg = ""; doc = null; renderHome();
 }
 
 // ================= crear / abrir / guardar =================
@@ -286,21 +397,22 @@ async function abrirDocumento(id){
 function mostrarEditor(){
   document.getElementById("home").classList.add("oculto");
   document.getElementById("editor").classList.remove("oculto");
-  ["btn-json","hdr-estado","btn-transicion","btn-vista","btn-guardar"].forEach(i=>document.getElementById(i).classList.remove("oculto"));
+  document.getElementById("topbar").classList.remove("oculto");
+  document.getElementById("nav-docs").classList.remove("active");
   renderTodo();
 }
 async function guardar(silencioso){
   try{
-    const r = await api("PUT","/api/documentos/"+doc.id, serializar());
-    document.getElementById("guardado").textContent = "✔ Guardado "+new Date().toLocaleTimeString();
+    await api("PUT","/api/documentos/"+doc.id, serializar());
+    guardadoMsg = "✔ Guardado "+new Date().toLocaleTimeString();
+    const el = document.getElementById("guardado"); if(el) el.textContent = guardadoMsg;
     return true;
   }catch(e){
     if(!silencioso) alert("No se pudo guardar: "+e.message);
-    document.getElementById("guardado").textContent = "";
     return false;
   }
 }
-document.getElementById("btn-guardar").onclick = async ()=>{ if(await guardar()) irHome(); };
+async function guardarYVolver(){ if(await guardar()) irHome(); }
 
 function desBloques(bs){
   return (bs||[]).map(b=>{
@@ -336,17 +448,23 @@ function deserializar(j){
 }
 
 // ================= render =================
-function renderTodo(){ renderHeader(); renderFicha(); renderDoc(); renderComentarios(); }
-function renderHeader(){
+function renderTodo(){ renderTopbar(); renderFicha(); renderDoc(); renderComentarios(); }
+function renderTopbar(){
   const est = CAT.estados[doc.tipo][doc.estado];
-  document.getElementById("hdr-estado").outerHTML = `<span id="hdr-estado" class="chip ${doc.estado}">${doc.id} · ${est.et} · v${doc.version}</span>`;
-  const btn = document.getElementById("btn-transicion");
-  if(est.sig.length){
-    btn.classList.remove("oculto");
-    btn.textContent = "→ " + CAT.estados[doc.tipo][est.sig[0]].et;
-    btn.onclick = ()=>transicionar(est.sig[0]);
-  } else btn.classList.add("oculto");
+  const c = estadoColor(doc.estado);
+  let h = `<span class="tb-tipo">${doc.tipo==="adr"?"ADR":"RFC"} · ${doc.id}</span>`;
+  h += `<span class="chip" style="background:${c.bg};color:${c.fg}">${est.et}</span>`;
+  h += `<span class="tb-ver">v${doc.version}</span>`;
+  h += `<span id="guardado" class="tb-saved">${guardadoMsg}</span>`;
+  h += `<div style="flex:1"></div><div class="tb-actions">`;
+  if(est.sig.length) h += `<button class="btn" onclick="transicionar('${est.sig[0]}')">→ ${CAT.estados[doc.tipo][est.sig[0]].et}</button>`;
+  h += `<button class="btn-primary" onclick="guardarYVolver()">Guardar y volver</button>`;
+  h += `<button class="btn" onclick="abrirVista()">Vista / Exportar</button>`;
+  h += `<button class="btn-ghost" onclick="abrirJson()">Ver JSON</button>`;
+  h += `</div>`;
+  document.getElementById("topbar").innerHTML = h;
 }
+
 async function transicionar(nuevo){
   if(doc.estado==="borrador"){
     const faltan = CAT.secciones[doc.tipo].filter(d=>d.ob && !defUsada(d)).map(d=>d.et);
@@ -381,34 +499,38 @@ async function transicionar(nuevo){
   renderTodo();
 }
 
-function campo(id,label,req,control){ return `<div class="campo"><label>${label} ${req?'<span class="req">*</span>':'<span class="opt">(opcional)</span>'}</label>${control}</div>`; }
-const inp=(k,ph,handler)=>`<input value="${(doc[k]||"").replace(/"/g,"&quot;")}" placeholder="${ph}" oninput="${handler||`doc['${k}']=this.value`}">`;
+// ---- ficha ----
+function campo(label,req,control,opt){ return `<div class="field"><label>${label} ${req?'<span class="req">*</span>':(opt?'<span class="opt">(opcional)</span>':'')}</label>${control}</div>`; }
+const inp=(k,ph)=>`<input value="${escA(doc[k])}" placeholder="${ph}" oninput="doc['${k}']=this.value">`;
+function syncTitulo(from){
+  if(from==="f"){ const d=document.getElementById("doc-titulo"); if(d) d.value=doc.titulo; }
+  else { const f=document.getElementById("f-titulo"); if(f) f.value=doc.titulo; }
+}
 
 function renderFicha(){
   const esAdr = doc.tipo==="adr";
-  let h = `<h2>Ficha del documento</h2>`;
-  h += campo("id","Identificador",1,`<input class="auto" value="${doc.id} — asignado por DADM" disabled>`);
-  h += campo("titulo","Título",1,inp("titulo","Qué se decide/propone, en una línea","doc.titulo=this.value; renderTituloDoc()"));
-  h += campo("descripcion_corta","Descripción corta",0,inp("descripcion_corta","Bajada para listados (1–2 líneas)"));
+  let h = `<div class="panel-h">Ficha del documento</div>`;
+  h += campo("Identificador",1,`<input class="auto" value="${doc.id} — asignado por DADM" disabled>`);
+  h += campo("Título",1,`<input id="f-titulo" value="${escA(doc.titulo)}" placeholder="Qué se decide/propone, en una línea" oninput="doc.titulo=this.value; syncTitulo('f')">`);
+  h += campo("Descripción corta",0,inp("descripcion_corta","Bajada para listados (1–2 líneas)"),1);
   if(esAdr){
-    h += campo("ambito","Ámbito",1,`<select onchange="doc.ambito=this.value"><option value="">— elegir —</option>${CAT.ambitos.map(a=>`<option value="${a[0]}" ${doc.ambito===a[0]?"selected":""}>${a[1]}</option>`).join("")}</select>`);
-    h += campo("autores","Autor(es)",1,inp("autores","Nombre — Rol, Equipo (separar con ·)"));
-    h += campo("decisores","Decisores / Aprobadores",1,inp("decisores","Personas o equipos que aprueban"));
-    h += campo("nota_alcance","Nota de alcance",0,inp("nota_alcance","Qué fija este ADR y qué queda afuera"));
-    h += campo("relaciones","Relaciones",0,inp("relaciones","deriva_de: RFC-0004 · reemplaza_a: ADR-002"));
+    h += campo("Ámbito",1,`<select onchange="doc.ambito=this.value"><option value="">— elegir —</option>${CAT.ambitos.map(a=>`<option value="${a[0]}" ${doc.ambito===a[0]?"selected":""}>${a[1]}</option>`).join("")}</select>`);
+    h += campo("Autor(es)",1,inp("autores","Nombre — Rol, Equipo (separar con ·)"));
+    h += campo("Decisores / Aprobadores",1,inp("decisores","Personas o equipos que aprueban"));
+    h += campo("Nota de alcance",0,inp("nota_alcance","Qué fija este ADR y qué queda afuera"),1);
+    h += campo("Relaciones",0,inp("relaciones","deriva_de: RFC-0004 · reemplaza_a: ADR-002"),1);
   } else {
-    h += campo("autores","Autor(es)",1,inp("autores","Nombre — Rol, Equipo"));
-    h += campo("sponsor","Sponsor / decisión final por",1,inp("sponsor","Ej: Gobierno de Datos"));
-    h += campo("ventana","Ventana de comentarios",0,`<div style="display:flex;gap:6px"><input type="date" value="${doc.ventana_desde}" onchange="doc.ventana_desde=this.value"><input type="date" value="${doc.ventana_hasta}" onchange="doc.ventana_hasta=this.value"></div>`);
-    h += campo("fecha_esperada","Fecha esperada de decisión",0,`<input type="date" value="${doc.fecha_esperada}" onchange="doc.fecha_esperada=this.value">`);
-    h += campo("stakeholders","Stakeholders convocados",0,inp("stakeholders","Gobierno (requerida) · Plataforma (requerida)"));
+    h += campo("Autor(es)",1,inp("autores","Nombre — Rol, Equipo"));
+    h += campo("Sponsor / decisión final por",1,inp("sponsor","Ej: Gobierno de Datos"));
+    h += campo("Ventana de comentarios",0,`<div style="display:flex;gap:6px"><input type="date" value="${doc.ventana_desde}" onchange="doc.ventana_desde=this.value"><input type="date" value="${doc.ventana_hasta}" onchange="doc.ventana_hasta=this.value"></div>`,1);
+    h += campo("Fecha esperada de decisión",0,`<input type="date" value="${doc.fecha_esperada}" onchange="doc.fecha_esperada=this.value">`,1);
+    h += campo("Stakeholders convocados",0,inp("stakeholders","Gobierno (requerida) · Plataforma (requerida)"),1);
   }
-  h += campo("tags","Tags",0,inp("tags","redshift, iceberg, dbt"));
-  h += campo("fc","Fecha creación / Versión",1,`<input class="auto" value="${doc.fecha_creacion} · v${doc.version} — automáticas" disabled>`);
-  h += `<div class="nota-dadm">Historial, versión y ${esAdr?"aprobaciones":"tabla de comentarios"}: los genera DADM.</div>`;
+  h += campo("Tags",0,inp("tags","redshift, iceberg, dbt"),1);
+  h += campo("Fecha creación / Versión",1,`<input class="auto" value="${doc.fecha_creacion} · v${doc.version} — automáticas" disabled>`);
+  h += `<div class="nota">Historial, versión y ${esAdr?"aprobaciones":"tabla de comentarios"}: los genera DADM.</div>`;
   document.getElementById("panel-ficha").innerHTML = h;
 }
-function renderTituloDoc(){ document.querySelector("#doc .titulo").textContent = doc.titulo; }
 
 function defDe(sec){
   const defs = CAT.secciones[doc.tipo];
@@ -419,35 +541,39 @@ function defDe(sec){
 }
 const defUsada = d => d.cfg ? doc.cuerpo.some(s=>s.titulo===d.et) : doc.cuerpo.some(s=>s.codigo===d.c);
 
+function tagSec(def){
+  if(def.ob)  return `<span class="tag" style="background:oklch(0.92 0.10 95);color:oklch(0.55 0.12 95)">OBLIGATORIA</span>`;
+  if(def.rec) return `<span class="tag" style="background:oklch(0.94 0.04 215);color:oklch(0.55 0.12 215)">RECOMENDADA</span>`;
+  return `<span class="tag" style="background:oklch(0.94 0.006 60);color:oklch(0.42 0.013 40)">OPCIONAL</span>`;
+}
+
 function renderDoc(){
   const cont = document.getElementById("doc");
-  let h = `<div class="tipo-doc">${doc.tipo==="adr"?"ARCHITECTURE DECISION RECORD":"REQUEST FOR COMMENTS"} · ${doc.id}</div>`;
-  h += `<h1 class="titulo" contenteditable="true" oninput="doc.titulo=this.textContent; document.querySelectorAll('#panel-ficha input')[1].value=this.textContent">${doc.titulo}</h1>`;
+  let h = `<div class="doc-eyebrow">${doc.tipo==="adr"?"ARCHITECTURE DECISION RECORD":"REQUEST FOR COMMENTS"} · ${doc.id}</div>`;
+  h += `<input id="doc-titulo" class="doc-title" value="${escA(doc.titulo)}" placeholder="Título del documento" oninput="doc.titulo=this.value; syncTitulo('d')">`;
   doc.cuerpo.forEach((sec,si)=>{
     const def = defDe(sec);
-    const tag = def.ob?'<span class="tag oblig">OBLIGATORIA</span>':(def.rec?'<span class="tag rec">RECOMENDADA</span>':'<span class="tag opc">OPCIONAL</span>');
     const base = `doc.cuerpo[${si}]`;
-    h += `<div class="seccion"><div class="cab"><h3>${si+1}. ${sec.titulo}</h3>${tag}
-      <div class="acciones">
-        <button onclick="menuBloque(event,'${base}.bloques')">+ bloque</button>
-        <button onclick="agregarSubseccion(${si})">+ subsección</button>
-        ${def.ob?"":`<button onclick="quitarSeccion(${si})" title="Quitar sección">✕</button>`}
+    h += `<div class="seccion"><div class="sec-cab"><h3>${si+1}. ${esc(sec.titulo)}</h3>${tagSec(def)}
+      <div class="acc">
+        <button class="acc-btn" onclick="menuBloque(event,'${base}.bloques')">+ bloque</button>
+        <button class="acc-btn" onclick="agregarSubseccion(${si})">+ subsección</button>
+        ${def.ob?"":`<button class="acc-btn danger" onclick="quitarSeccion(${si})" title="Quitar sección">✕</button>`}
       </div></div>`;
     sec.bloques.forEach((b,bi)=>{ h += renderBloque(b,`${base}.bloques`,bi,def.ph); });
     (sec.subsecciones||[]).forEach((sub,ui)=>{
       const sbase = `${base}.subsecciones[${ui}]`;
-      h += `<div class="subseccion" style="margin:10px 0 4px 18px; border-left:3px solid var(--borde); padding-left:12px">
-        <div class="cab"><h4>${si+1}.${ui+1}  ${sub.titulo}</h4>
-        <div class="acciones"><button onclick="menuBloque(event,'${sbase}.bloques')">+ bloque</button>
-        <button onclick="if(confirm('¿Quitar la subsección?')){${base}.subsecciones.splice(${ui},1); renderDoc()}" title="Quitar subsección">✕</button></div></div>`;
+      h += `<div class="subsec"><div class="sec-cab"><h4>${si+1}.${ui+1} ${esc(sub.titulo)}</h4>
+        <div class="acc"><button class="acc-btn" onclick="menuBloque(event,'${sbase}.bloques')">+ bloque</button>
+        <button class="acc-btn danger" onclick="if(confirm('¿Quitar la subsección?')){${base}.subsecciones.splice(${ui},1); renderDoc()}" title="Quitar subsección">✕</button></div></div>`;
       sub.bloques.forEach((b,bi)=>{ h += renderBloque(b,`${sbase}.bloques`,bi,sub.ph); });
       h += `</div>`;
     });
     h += `</div>`;
   });
-  h += `<div class="barra-agregar">
-    <button class="primario" onclick="menuSeccion(event)">+ Agregar sección</button>
-    <span class="mini" style="align-self:center">Secciones del catálogo o personalizadas. Las obligatorias no se pueden quitar.</span>
+  h += `<div style="display:flex;gap:10px;margin-top:18px;align-items:center;flex-wrap:wrap">
+    <button class="btn-primary" onclick="menuSeccion(event)">+ Agregar sección</button>
+    <span style="font:400 12px var(--sans);color:var(--muted3)">Secciones del catálogo o personalizadas. Las obligatorias no se pueden quitar.</span>
   </div>`;
   cont.innerHTML = h;
 }
@@ -455,31 +581,38 @@ function renderDoc(){
 function renderBloque(b,expr,bi,ph){
   const B = `${expr}[${bi}]`;
   const quitar = `<button class="quitar" onclick="${expr}.splice(${bi},1); renderDoc()" title="Quitar bloque">✕</button>`;
-  if(b.tipo==="texto") return `<div class="bloque">${quitar}<div class="btx" contenteditable="true" data-ph="${(ph||"Escribí acá…").replace(/"/g,"&quot;")}" oninput="${B}.contenido=this.innerText">${b.contenido||""}</div></div>`;
-  if(b.tipo==="callout") return `<div class="bloque callout">${quitar}<div class="btx" contenteditable="true" data-ph="Decisión / advertencia / cita destacada…" oninput="${B}.contenido=this.innerText">${b.contenido||""}</div></div>`;
-  if(b.tipo==="codigo") return `<div class="bloque codigo">${quitar}<div class="btx" contenteditable="true" data-ph="-- SQL / YAML / código" oninput="${B}.contenido=this.innerText">${b.contenido||""}</div></div>`;
-  if(b.tipo==="imagen") return `<div class="bloque">${quitar}<div class="btx" style="text-align:center;color:#999;border:1px dashed var(--borde);padding:16px">
-    ${b.recurso?`<img src="/api/imagenes/${b.recurso}" style="max-width:100%;max-height:320px;border:1px solid var(--borde);border-radius:4px" onerror="this.style.display='none'">`:"🖼 Sin imagen"}
-    <div style="margin:8px 0"><button onclick="subirImagen('${expr}',${bi})">${b.recurso?"Reemplazar imagen":"+ Subir imagen (PNG)"}</button></div>
-    <i contenteditable="true" data-ph="epígrafe…" oninput="${B}.epigrafe=this.innerText">${b.epigrafe||""}</i>
+  if(b.tipo==="texto") return `<div class="bloque">${quitar}<div class="btx" contenteditable="true" data-ph="${escA(ph||'Escribí acá…')}" oninput="${B}.contenido=this.innerText">${esc(b.contenido)}</div></div>`;
+  if(b.tipo==="callout"){
+    const est = b.estilo||"info"; const cs = CALLOUT[est];
+    const pills = Object.keys(CALLOUT).map(k=>{ const c=CALLOUT[k]; const on=k===est;
+      return `<button class="pill" style="border-color:${c.bar};${on?`background:${c.bar};color:#fff`:`background:#fff;color:${c.fg}`}" onclick="setEstilo('${expr}',${bi},'${k}')">${c.label}</button>`; }).join("");
+    return `<div class="bloque">${quitar}<div class="pills">${pills}</div><div class="btx callout" contenteditable="true" style="background:${cs.bg};color:${cs.fg};border-left:4px solid ${cs.bar}" data-ph="Decisión / advertencia / cita destacada…" oninput="${B}.contenido=this.innerText">${esc(b.contenido)}</div></div>`;
+  }
+  if(b.tipo==="codigo") return `<div class="bloque">${quitar}<div class="btx codigo" contenteditable="true" data-ph="-- SQL / YAML / código" oninput="${B}.contenido=this.innerText">${esc(b.contenido)}</div></div>`;
+  if(b.tipo==="imagen") return `<div class="bloque">${quitar}<div class="img-box">
+    ${b.recurso?`<img src="/api/imagenes/${b.recurso}" style="max-width:100%;max-height:320px;border:1px solid var(--border);border-radius:4px" onerror="this.style.display='none'">`:`<div style="padding:20px;font-size:13px">🖼 Sin imagen</div>`}
+    <div style="margin:8px 0"><button class="acc-btn" onclick="subirImagen('${expr}',${bi})">${b.recurso?"Reemplazar imagen":"+ Subir imagen (PNG/JPG)"}</button></div>
+    <input value="${escA(b.epigrafe)}" placeholder="epígrafe…" oninput="${B}.epigrafe=this.value" style="width:60%;border:1px solid var(--border);border-radius:4px;padding:5px 8px;font:italic 400 12px var(--sans);text-align:center">
   </div></div>`;
   if(b.tipo==="tabla_libre"||b.tipo==="tabla_tipada"){
     const fijo = b.tipo==="tabla_tipada";
-    let t = `<div class="bloque">${quitar}${fijo?`<div class="mini" style="margin-bottom:2px">Objeto complejo — tabla tipada: <b>${(CAT.tablasTipadas[b.plantilla]||{et:b.plantilla}).et}</b></div>`:`<div class="mini" style="margin-bottom:2px">Objeto complejo — tabla libre</div>`}<table class="tbl"><tr>`;
     const din = !fijo || ["comparativa","raci","matriz_asignacion"].includes(b.plantilla);
-    b.encabezados.forEach((c,ci)=>{ t += `<th ${din?`contenteditable="true" oninput="${B}.encabezados[${ci}]=this.innerText"`:""}>${c}</th>`; });
+    let t = `<div class="bloque">${quitar}<div style="font:400 11.5px var(--sans);color:var(--muted3);margin-bottom:3px">${fijo?`Objeto complejo — tabla tipada: <b>${(CAT.tablasTipadas[b.plantilla]||{et:b.plantilla}).et}</b>`:`Objeto complejo — tabla libre`}</div><table class="tbl"><tr>`;
+    b.encabezados.forEach((c,ci)=>{ t += `<th ${din?`contenteditable="true" oninput="${B}.encabezados[${ci}]=this.innerText"`:""}>${esc(c)}</th>`; });
     t += `</tr>`;
     b.filas.forEach((f,fi)=>{
       t += `<tr>`;
-      f.forEach((c,ci)=>{ t += `<td contenteditable="true" oninput="${B}.filas[${fi}][${ci}]=this.innerText">${c}</td>`; });
+      f.forEach((c,ci)=>{ t += `<td contenteditable="true" oninput="${B}.filas[${fi}][${ci}]=this.innerText">${esc(c)}</td>`; });
       t += `</tr>`;
     });
-    t += `</table><button class="add-fila mini" onclick="${B}.filas.push(new Array(${b.encabezados.length}).fill('')); renderDoc()">+ fila</button>`;
-    if(din) t += ` <button class="add-fila mini" onclick="let bl=${B}; bl.encabezados.push('Col'); bl.filas.forEach(f=>f.push('')); renderDoc()">+ columna</button>`;
+    t += `</table><button class="link-btn" onclick="${B}.filas.push(new Array(${b.encabezados.length}).fill('')); renderDoc()">+ fila</button>`;
+    if(din) t += ` <button class="link-btn" style="margin-left:8px" onclick="let bl=${B}; bl.encabezados.push('Col'); bl.filas.forEach(f=>f.push('')); renderDoc()">+ columna</button>`;
     return t + `</div>`;
   }
   return "";
 }
+function setEstilo(expr,bi,k){ eval(expr)[bi].estilo=k; renderDoc(); }
+
 function agregarSubseccion(si){
   const sec = doc.cuerpo[si];
   const def = defDe(sec);
@@ -535,7 +668,7 @@ function menuBloque(ev,expr){
   h += `<button onclick="agregarBloque('${expr}','texto')">Texto</button>`;
   h += `<button onclick="agregarBloque('${expr}','callout')">Callout / cita destacada</button>`;
   h += `<button onclick="agregarBloque('${expr}','codigo')">Código</button>`;
-  h += `<button onclick="agregarBloque('${expr}','imagen')">Imagen (PNG)</button>`;
+  h += `<button onclick="agregarBloque('${expr}','imagen')">Imagen (PNG/JPG)</button>`;
   h += `<div class="grupo">Objetos complejos</div>`;
   h += `<button onclick="agregarBloque('${expr}','tabla_libre')">Tabla libre <small>n×m, columnas editables</small></button>`;
   Object.entries(CAT.tablasTipadas).forEach(([k,v])=>{
@@ -556,11 +689,11 @@ function agregarBloque(expr,tipo){
   renderDoc();
 }
 
-// ================= imágenes (subida directa de PNG) =================
+// ================= imágenes (subida directa PNG/JPG) =================
 function subirImagen(expr,bi){
   const input = document.createElement("input");
   input.type = "file";
-  input.accept = "image/png";
+  input.accept = "image/png,image/jpeg";
   input.onchange = ()=>{
     const file = input.files[0];
     if(!file) return;
@@ -589,23 +722,23 @@ async function guardarConfig(){
 }
 function renderConfig(){
   const filaSec = (tipo,d,i) => `<tr>
-    <td>${d.etiqueta}${d.cfg?' <span class="mini">(agregado por config.)</span>':''}</td>
+    <td>${d.etiqueta}${d.cfg?' <span style="font:400 11px var(--sans);color:var(--muted3)">(agregado por config.)</span>':''}</td>
     <td><select onchange="setNivel('${tipo}',${i},this.value)">
       <option value="obligatoria" ${d.obligatoria?"selected":""}>Obligatoria</option>
       <option value="recomendada" ${!d.obligatoria&&d.recomendada?"selected":""}>Recomendada</option>
       <option value="opcional" ${!d.obligatoria&&!d.recomendada?"selected":""}>Opcional</option>
     </select></td>
-    <td>${d.cfg?`<button onclick="quitarApartado('${tipo}',${i})">✕ quitar</button>`:'<span class="mini">de fábrica</span>'}</td>
+    <td>${d.cfg?`<button class="acc-btn danger" onclick="quitarApartado('${tipo}',${i})">✕ quitar</button>`:'<span style="font:400 11px var(--sans);color:var(--muted3)">de fábrica</span>'}</td>
   </tr>`;
   let h = "";
   for(const tipo of ["adr","rfc"]){
-    h += `<h4>${tipo.toUpperCase()} — secciones y obligatoriedad</h4>
-    <table><tr><th>Sección</th><th>Nivel</th><th></th></tr>`;
+    h += `<h4 class="cfg-h">${tipo.toUpperCase()} — secciones y obligatoriedad</h4>
+    <table class="cfg-table"><tr><th>Sección</th><th>Nivel</th><th></th></tr>`;
     CATALOGOS["secciones_"+tipo].forEach((d,i)=>{ if(d.codigo!=="custom"||d.cfg) h += filaSec(tipo,d,i); });
     h += `</table>`;
   }
-  h += `<h4>Agregar apartado nuevo</h4>
-  <div class="nuevo">
+  h += `<h4 class="cfg-h">Agregar apartado nuevo</h4>
+  <div class="cfg-nuevo">
     <input id="na-nombre" placeholder="Nombre del apartado (ej: Análisis de Costos FinOps)">
     <select id="na-tipo"><option value="adr">Solo ADR</option><option value="rfc">Solo RFC</option><option value="ambos">ADR y RFC</option></select>
     <input id="na-guia" placeholder="Texto guía para el arquitecto (opcional)" style="grid-column:1/2">
@@ -614,7 +747,7 @@ function renderConfig(){
       ${Object.entries(CAT.tablasTipadas).map(([k,v])=>`<option value="${k}">Nace con: Tabla ${v.et}</option>`).join("")}
     </select>
     <select id="na-nivel"><option value="opcional">Opcional</option><option value="recomendada">Recomendada</option><option value="obligatoria">Obligatoria</option></select>
-    <button class="primario" onclick="agregarApartado()">+ Agregar apartado</button>
+    <button class="btn-primary" style="grid-column:1/-1;justify-content:center" onclick="agregarApartado()">+ Agregar apartado</button>
   </div>`;
   document.getElementById("config-cuerpo").innerHTML = h;
 }
@@ -648,19 +781,19 @@ function renderComentarios(){
   if(doc.tipo!=="rfc"){ panel.classList.add("oculto"); return; }
   panel.classList.remove("oculto");
   const pend = doc.comentarios.filter(c=>!c.resolucion).length;
-  let h = `<h2>Comentarios de revisores (${doc.comentarios.length})</h2>`;
-  h += `<p class="mini" style="margin-bottom:10px">${pend?`<b class="pendiente-res">${pend} sin resolución</b> — no se puede cerrar el RFC hasta resolverlos.`:"Sin pendientes."}</p>`;
+  let h = `<div class="panel-h">Comentarios de revisores (${doc.comentarios.length})</div>`;
+  h += `<p style="font:400 12px var(--sans);color:var(--muted);margin-bottom:12px">${pend?`<b style="color:oklch(0.42 0.13 25)">${pend} sin resolución</b> — no se puede cerrar el RFC hasta resolverlos.`:"Sin pendientes."}</p>`;
   doc.comentarios.forEach((c,i)=>{
-    h += `<div class="comentario">
-      <div class="meta">#${c.num} · ${c.fecha} · <b>${c.revisor}</b> · ${c.tipo}${c.seccion?` · sobre «${c.seccion}»`:""}</div>
-      <div>${c.comentario}</div>
-      <div class="res">
+    h += `<div style="border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:8px">
+      <div style="font:400 11px var(--mono);color:var(--muted2);margin-bottom:4px">#${c.num} · ${c.fecha} · <b style="font-family:var(--sans)">${esc(c.revisor)}</b> · ${c.tipo}${c.seccion?` · sobre «${esc(c.seccion)}»`:""}</div>
+      <div style="font:400 13px var(--sans);color:var(--ink)">${esc(c.comentario)}</div>
+      <div style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
         ${c.resolucion
-          ? `<span class="estado-res resuelto">✔ ${c.resolucion}${c.detalle?": "+c.detalle:""}</span>`
-          : `<select id="res-${i}"><option value="">— resolver —</option>${CAT.resoluciones.map(r=>`<option>${r}</option>`).join("")}</select><button onclick="resolver(${i})">Aplicar</button><span class="estado-res pendiente-res">pendiente</span>`}
+          ? `<span style="font:600 11px var(--sans);color:oklch(0.45 0.10 150)">✔ ${esc(c.resolucion)}${c.detalle?": "+esc(c.detalle):""}</span>`
+          : `<select id="res-${i}" style="font-size:12px;padding:3px 6px;border:1px solid var(--border);border-radius:4px"><option value="">— resolver —</option>${CAT.resoluciones.map(r=>`<option>${r}</option>`).join("")}</select><button class="acc-btn" onclick="resolver(${i})">Aplicar</button><span style="font:600 11px var(--sans);color:oklch(0.42 0.13 25)">pendiente</span>`}
       </div></div>`;
   });
-  h += `<button style="width:100%" onclick="agregarComentario()">+ Registrar comentario de un revisor</button>`;
+  h += `<button class="btn" style="width:100%;justify-content:center" onclick="agregarComentario()">+ Registrar comentario de un revisor</button>`;
   panel.innerHTML = h;
 }
 function agregarComentario(){
@@ -728,17 +861,16 @@ function serializar(){
   }
   return base;
 }
-document.getElementById("btn-json").onclick = ()=>{
+function abrirJson(){
   document.getElementById("json-out").textContent = JSON.stringify(serializar(),null,2);
   dlgJson.showModal();
-};
+}
 function copiarJson(){ navigator.clipboard.writeText(document.getElementById("json-out").textContent); }
 
 // ================= vista documento / export =================
-const esc = s => (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;");
 function vTexto(contenido){
   let h = "";
-  contenido.split(/\n\n/).forEach(parr=>{
+  (contenido||"").split(/\n\n/).forEach(parr=>{
     const lineas = parr.split("\n");
     let buf = [], enLista = false;
     lineas.forEach(l=>{
@@ -779,9 +911,9 @@ function abrirVista(){
   const est = CAT.estados[doc.tipo][doc.estado];
   const fila = (l,v)=>`<tr><td class="lbl">${l}</td><td>${esc(v)||"—"}</td></tr>`;
   let h = `<div class="barra">
-    <button class="primario" onclick="exportarWord()">⬇ Descargar Word (.docx)</button>
-    <button onclick="window.print()">🖨 Imprimir / PDF</button>
-    <button onclick="document.getElementById('vista').classList.add('oculto')">Cerrar</button>
+    <button class="btn-primary" onclick="exportarWord()">⬇ Descargar Word (.docx)</button>
+    <button class="btn" onclick="window.print()">🖨 Imprimir / PDF</button>
+    <button class="btn" onclick="document.getElementById('vista').classList.add('oculto')">Cerrar</button>
   </div><div class="pagina">`;
   h += `<div class="marca-v">BANCO GALICIA &nbsp;·&nbsp; DATA & AI &nbsp;·&nbsp; ARQUITECTURA DATA</div>`;
   h += `<div class="tipo-v">${esAdr?"ARCHITECTURE DECISION RECORD":"REQUEST FOR COMMENTS"}</div>`;
@@ -833,7 +965,6 @@ function abrirVista(){
   const v = document.getElementById("vista");
   v.innerHTML = h; v.classList.remove("oculto"); v.scrollTop = 0;
 }
-document.getElementById("btn-vista").onclick = abrirVista;
 
 init();
 </script>

@@ -6,9 +6,19 @@ const {
   WidthType, ShadingType, PageNumber, ImageRun,
 } = require("docx");
 
-// Ancho/alto declarados en el chunk IHDR (bytes 16-23) de un PNG.
-function dimensionesPng(buf) {
-  return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
+// Dimensiones de una imagen PNG (chunk IHDR) o JPEG (marcador SOF).
+function dimensionesImagen(buf, mime) {
+  if (mime === "image/png") return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
+  let o = 2;
+  while (o < buf.length) {
+    if (buf[o] !== 0xFF) { o++; continue; }
+    const m = buf[o + 1];
+    if (m >= 0xC0 && m <= 0xCF && ![0xC4, 0xC8, 0xCC].includes(m)) {
+      return { height: buf.readUInt16BE(o + 5), width: buf.readUInt16BE(o + 7) };
+    }
+    o += 2 + buf.readUInt16BE(o + 2);
+  }
+  return { width: 600, height: 400 };
 }
 
 const NARANJA = "E86A10", GRIS = "7F7F7F", AZUL_FILL = "DEEBF7",
@@ -84,11 +94,11 @@ function renderDocx(doc, CATALOGOS) {
     if (b.tipo === "callout") return bloqueCallout(b);
     if (b.tipo === "codigo") return [caja([p([t(b.contenido, { font: "Consolas", size: 18 })])], "F5F5F5"), vacio()];
     if (b.tipo === "imagen") {
-      if (b._pngBuffer) {
-        const dims = dimensionesPng(b._pngBuffer);
+      if (b._imgBuffer) {
+        const dims = dimensionesImagen(b._imgBuffer, b._imgMime);
         const maxAncho = 550;
         const escala = Math.min(1, maxAncho / dims.width);
-        const out = [p([new ImageRun({ data: b._pngBuffer, type: "png", transformation: {
+        const out = [p([new ImageRun({ data: b._imgBuffer, type: b._imgMime === "image/png" ? "png" : "jpg", transformation: {
           width: Math.round(dims.width * escala), height: Math.round(dims.height * escala),
         } })], { alignment: AlignmentType.CENTER })];
         if (b.epigrafe) out.push(p([t(b.epigrafe, { color: GRIS, size: 18, italics: true })], { alignment: AlignmentType.CENTER }));
