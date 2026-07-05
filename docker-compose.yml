@@ -1,9 +1,14 @@
 services:
-  dadm:
-    build: .
-    container_name: dadm
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb_local
+    restart: always
     ports:
-      - "8321:8321"
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
     volumes:
-      - ./data:/app/data
-    restart: unless-stopped
+      - mongo_data:/data/db
+volumes:
+  mongo_data:

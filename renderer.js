@@ -3,8 +3,13 @@
 const {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
   Header, Footer, AlignmentType, LevelFormat, HeadingLevel, BorderStyle,
-  WidthType, ShadingType, PageNumber,
+  WidthType, ShadingType, PageNumber, ImageRun,
 } = require("docx");
+
+// Ancho/alto declarados en el chunk IHDR (bytes 16-23) de un PNG.
+function dimensionesPng(buf) {
+  return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
+}
 
 const NARANJA = "E86A10", GRIS = "7F7F7F", AZUL_FILL = "DEEBF7",
       GRIS_FILL = "F2F2F2", NEGRO = "262626", ROJO_FILL = "FBE4E0", ROJO = "9C3325", CONTENT = 9026;
@@ -78,7 +83,20 @@ function renderDocx(doc, CATALOGOS) {
     if (b.tipo === "texto") return bloqueTexto(b.contenido);
     if (b.tipo === "callout") return bloqueCallout(b);
     if (b.tipo === "codigo") return [caja([p([t(b.contenido, { font: "Consolas", size: 18 })])], "F5F5F5"), vacio()];
-    if (b.tipo === "imagen") return [caja([p([t(`🖼 Imagen: ${b.recurso}${b.epigrafe ? " — " + b.epigrafe : ""}`, { color: GRIS, size: 18, italics: true })])], "FAFAF8"), vacio()];
+    if (b.tipo === "imagen") {
+      if (b._pngBuffer) {
+        const dims = dimensionesPng(b._pngBuffer);
+        const maxAncho = 550;
+        const escala = Math.min(1, maxAncho / dims.width);
+        const out = [p([new ImageRun({ data: b._pngBuffer, type: "png", transformation: {
+          width: Math.round(dims.width * escala), height: Math.round(dims.height * escala),
+        } })], { alignment: AlignmentType.CENTER })];
+        if (b.epigrafe) out.push(p([t(b.epigrafe, { color: GRIS, size: 18, italics: true })], { alignment: AlignmentType.CENTER }));
+        out.push(vacio());
+        return out;
+      }
+      return [caja([p([t(`🖼 Imagen no disponible${b.epigrafe ? " — " + b.epigrafe : ""}`, { color: GRIS, size: 18, italics: true })])], "FAFAF8"), vacio()];
+    }
     if (b.tipo === "tabla_libre") return [tablaDocx(b.encabezados, b.filas), vacio()];
     if (b.tipo === "tabla_tipada") {
       const cols = Object.keys(b.filas[0] || {});

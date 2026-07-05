@@ -6,51 +6,55 @@ Los arquitectos completan los datos en el editor web y DADM genera el documento 
 ## Qué hace
 
 - **Documentos ADR y RFC** con núcleo obligatorio + secciones opcionales + subsecciones, según el formato vigente del equipo.
-- **Objetos a demanda** en cualquier sección: simples (texto, callout, código, imagen) y complejos (tabla libre, comparativa, matriz de riesgos, RACI, matriz de asignación, glosario, cronograma, stakeholders).
+- **Objetos a demanda** en cualquier sección: simples (texto, callout, código, imagen PNG) y complejos (tabla libre, comparativa, matriz de riesgos, RACI, matriz de asignación, glosario, cronograma, stakeholders).
 - **Configuración editable** (⚙): cambiar qué secciones son obligatorias/recomendadas/opcionales y agregar apartados nuevos al catálogo, sin tocar código. Se persiste en la base y aplica a los documentos nuevos.
 - **Workflow con validación**: no se sale de borrador sin título, ficha completa y todas las secciones obligatorias según la configuración vigente. La validación corre en el cliente y también en el servidor.
 - **IDs correlativos** asignados por el servidor (pisos configurables en `secuencia_inicial` para convivir con los documentos históricos).
 - **Export sin perder formato**: Word (.docx) generado server-side con `renderer.js` (idéntico a las plantillas oficiales) y vista imprimible para PDF desde el navegador.
 
-## Probar en Render
+## Almacenamiento
 
-El repo incluye `render.yaml` (Blueprint). Pasos:
+Todo se guarda en **MongoDB** (base `DADM`), sin base local. Colecciones separadas:
 
-1. Pushear este contenido a la raíz de `github.com/alejandrogenovese/DADM`.
-2. En Render: **New → Blueprint** → conectar el repo → deploy. (O **New → Web Service** manual: runtime Node, build `npm install`, start `node server.js`.)
-3. Listo: `https://dadm.onrender.com` (o el nombre que asigne).
+| Colección | Contenido |
+|---|---|
+| `documents` | Documentos ADR/RFC (`_id` = ID correlativo, ej. `ADR-009`) |
+| `config` | Configuración/catálogo vigente (documento `clave: "catalogos"`) |
+| `imagenes` | Imágenes PNG subidas (`_id` = UUID, binario) |
 
-Notas del plan free:
-- **Filesystem efímero**: la base SQLite se reinicia con cada deploy/restart. Sirve para probar la herramienta, no como storage definitivo. Para persistir, plan pago + disco (bloque comentado en `render.yaml`) o correrlo en el NUC.
-- El servicio se duerme tras ~15 min sin tráfico; el primer request luego tarda ~30-60 s.
-
-## Correr en el NUC
+La conexión y las credenciales se configuran en un archivo `.env` (ver `.env.example`). Copiar y completar:
 
 ```bash
-cd dadm-app
-docker compose up -d --build
-# → http://<ip-del-nuc>:8321
+cp .env.example .env
 ```
 
-Los datos quedan en `./data/dadm.db` (volumen). Backup = copiar ese archivo.
+Variables: `PORT`, `MONGO_URI`, `MONGO_DB` (app) y `MONGO_ROOT_USERNAME` / `MONGO_ROOT_PASSWORD` (contenedor MongoDB). El `.env` está en `.gitignore` y **no se commitea**. Los índices se crean solos al arrancar.
 
-Sin Docker (requiere Node ≥ 22.5):
+## Correr local
+
+Levantar MongoDB (incluido en `docker-compose.yml`):
+
+```bash
+docker compose up -d          # → MongoDB en localhost:27017
+```
+
+Levantar la app (requiere Node ≥ 22.5):
 
 ```bash
 npm install
-npm start
+npm start                     # → http://localhost:8321
 ```
 
-Nota: SQLite necesita un filesystem local para `DATA_DIR` (disco del NUC, no un share de red).
+Backup = `mongodump` de la base `DADM`.
 
 ## Estructura
 
 ```
-server.js        API Express + SQLite (node:sqlite, sin dependencias nativas)
+server.js        API Express (solo MongoDB)
+db/mongo.js      conexión y colecciones (documentos · config · imágenes)
 renderer.js      JSON → .docx con el formato oficial
 schemas/         adr.schema.json · rfc.schema.json · catalogos.json (seed de configuración)
 public/          editor web (single-file)
-data/            base SQLite (se crea sola)
 ```
 
 ## API
@@ -65,6 +69,9 @@ data/            base SQLite (se crea sola)
 | PUT | `/api/documentos/:id` | Guardar — valida schema + obligatorias si no es borrador |
 | DELETE | `/api/documentos/:id` | Eliminar (solo borradores) |
 | GET | `/api/documentos/:id/export.docx` | Word con formato oficial |
+| POST | `/api/imagenes` | Subir PNG (`{"data":"data:image/png;base64,…"}`) — devuelve ID |
+| GET | `/api/imagenes/:id` | Servir el PNG |
+| DELETE | `/api/imagenes/:id` | Eliminar imagen |
 
 ## Pendiente para v0.2
 

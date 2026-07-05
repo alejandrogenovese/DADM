@@ -145,7 +145,7 @@
   <span id="guardado"></span>
   <span id="hdr-estado" class="oculto"></span>
   <button id="btn-transicion" class="oculto"></button>
-  <button id="btn-guardar" class="oculto primario">💾 Guardar</button>
+  <button id="btn-guardar" class="oculto primario">💾 Guardar y volver</button>
   <button id="btn-vista" class="oculto">Vista / Exportar</button>
   <button id="btn-json" class="oculto">Ver JSON</button>
   <button id="btn-config" onclick="abrirConfig()">⚙ Configuración</button>
@@ -181,6 +181,7 @@
   <pre id="json-out"></pre>
   <div class="pie"><button onclick="copiarJson()">Copiar</button></div>
 </dialog>
+
 
 <script>
 // ================= configuración remota =================
@@ -299,7 +300,7 @@ async function guardar(silencioso){
     return false;
   }
 }
-document.getElementById("btn-guardar").onclick = ()=>guardar();
+document.getElementById("btn-guardar").onclick = async ()=>{ if(await guardar()) irHome(); };
 
 function desBloques(bs){
   return (bs||[]).map(b=>{
@@ -457,7 +458,11 @@ function renderBloque(b,expr,bi,ph){
   if(b.tipo==="texto") return `<div class="bloque">${quitar}<div class="btx" contenteditable="true" data-ph="${(ph||"Escribí acá…").replace(/"/g,"&quot;")}" oninput="${B}.contenido=this.innerText">${b.contenido||""}</div></div>`;
   if(b.tipo==="callout") return `<div class="bloque callout">${quitar}<div class="btx" contenteditable="true" data-ph="Decisión / advertencia / cita destacada…" oninput="${B}.contenido=this.innerText">${b.contenido||""}</div></div>`;
   if(b.tipo==="codigo") return `<div class="bloque codigo">${quitar}<div class="btx" contenteditable="true" data-ph="-- SQL / YAML / código" oninput="${B}.contenido=this.innerText">${b.contenido||""}</div></div>`;
-  if(b.tipo==="imagen") return `<div class="bloque">${quitar}<div class="btx" style="text-align:center;color:#999;border:1px dashed var(--borde);padding:22px">🖼 Imagen / diagrama — <i contenteditable="true" data-ph="epígrafe…" oninput="${B}.epigrafe=this.innerText">${b.epigrafe||""}</i></div></div>`;
+  if(b.tipo==="imagen") return `<div class="bloque">${quitar}<div class="btx" style="text-align:center;color:#999;border:1px dashed var(--borde);padding:16px">
+    ${b.recurso?`<img src="/api/imagenes/${b.recurso}" style="max-width:100%;max-height:320px;border:1px solid var(--borde);border-radius:4px" onerror="this.style.display='none'">`:"🖼 Sin imagen"}
+    <div style="margin:8px 0"><button onclick="subirImagen('${expr}',${bi})">${b.recurso?"Reemplazar imagen":"+ Subir imagen (PNG)"}</button></div>
+    <i contenteditable="true" data-ph="epígrafe…" oninput="${B}.epigrafe=this.innerText">${b.epigrafe||""}</i>
+  </div></div>`;
   if(b.tipo==="tabla_libre"||b.tipo==="tabla_tipada"){
     const fijo = b.tipo==="tabla_tipada";
     let t = `<div class="bloque">${quitar}${fijo?`<div class="mini" style="margin-bottom:2px">Objeto complejo — tabla tipada: <b>${(CAT.tablasTipadas[b.plantilla]||{et:b.plantilla}).et}</b></div>`:`<div class="mini" style="margin-bottom:2px">Objeto complejo — tabla libre</div>`}<table class="tbl"><tr>`;
@@ -530,7 +535,7 @@ function menuBloque(ev,expr){
   h += `<button onclick="agregarBloque('${expr}','texto')">Texto</button>`;
   h += `<button onclick="agregarBloque('${expr}','callout')">Callout / cita destacada</button>`;
   h += `<button onclick="agregarBloque('${expr}','codigo')">Código</button>`;
-  h += `<button onclick="agregarBloque('${expr}','imagen')">Imagen / diagrama</button>`;
+  h += `<button onclick="agregarBloque('${expr}','imagen')">Imagen (PNG)</button>`;
   h += `<div class="grupo">Objetos complejos</div>`;
   h += `<button onclick="agregarBloque('${expr}','tabla_libre')">Tabla libre <small>n×m, columnas editables</small></button>`;
   Object.entries(CAT.tablasTipadas).forEach(([k,v])=>{
@@ -546,9 +551,32 @@ function agregarBloque(expr,tipo){
   else if(tipo.startsWith("tt:")){ const k=tipo.slice(3); b={tipo:"tabla_tipada",plantilla:k,encabezados:CAT.tablasTipadas[k].cols.slice(),filas:[new Array(CAT.tablasTipadas[k].cols.length).fill("")]}; }
   else if(tipo==="callout") b={tipo:"callout",estilo:"info",contenido:""};
   else if(tipo==="codigo") b={tipo:"codigo",lenguaje:"sql",contenido:""};
-  else b={tipo:"imagen",recurso:"(pendiente)",epigrafe:""};
+  else b={tipo:"imagen",recurso:"",epigrafe:""};
   eval(expr).push(b);
   renderDoc();
+}
+
+// ================= imágenes (subida directa de PNG) =================
+function subirImagen(expr,bi){
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/png";
+  input.onchange = ()=>{
+    const file = input.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = async ()=>{
+      try{
+        const r = await api("POST","/api/imagenes", {data: reader.result});
+        eval(`${expr}[${bi}]`).recurso = r.id;
+        renderDoc();
+      }catch(e){
+        alert("No se pudo subir la imagen: "+e.message);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+  input.click();
 }
 
 // ================= configuración =================
@@ -732,7 +760,9 @@ function vBloque(b){
   if(b.tipo==="texto") return vTexto(b.contenido);
   if(b.tipo==="callout") return `<div class="callout-v co-${b.estilo||"info"}">${b.estilo==="decision"?"<b>DECISIÓN / </b>":""}${esc(b.contenido)}</div>`;
   if(b.tipo==="codigo") return `<div class="codigo-v">${esc(b.contenido)}</div>`;
-  if(b.tipo==="imagen") return `<p style="color:#999;border:1px dashed #ccc;padding:16px;text-align:center">🖼 ${esc(b.recurso)} ${esc(b.epigrafe||"")}</p>`;
+  if(b.tipo==="imagen") return b.recurso
+    ? `<p style="text-align:center"><img src="/api/imagenes/${b.recurso}" style="max-width:100%">${b.epigrafe?`<br><span style="color:#999;font-size:12px">${esc(b.epigrafe)}</span>`:""}</p>`
+    : `<p style="color:#999;border:1px dashed #ccc;padding:16px;text-align:center">🖼 ${esc(b.epigrafe||"")}</p>`;
   if(b.tipo==="tabla_libre"||b.tipo==="tabla_tipada"){
     let t = `<table><tr>${b.encabezados.map(c=>`<th>${esc(c)}</th>`).join("")}</tr>`;
     b.filas.forEach(f=>{ t += `<tr>${f.map(c=>`<td>${esc(c)}</td>`).join("")}</tr>`; });
