@@ -39,7 +39,25 @@
   .nav-btn{display:flex; align-items:center; gap:10px; padding:8px 10px; font:500 13px var(--sans); color:var(--side-text); background:transparent; border:0; border-radius:5px; cursor:pointer; text-align:left; width:100%}
   .nav-btn:hover{background:oklch(0.22 0.011 30)}
   .nav-btn.active{color:#fff; background:color-mix(in oklch, var(--orange), transparent 75%)}
+  .side-user{display:flex; align-items:center; gap:8px; padding:10px 8px; border-top:1px solid var(--side-border); margin-top:6px}
+  .side-user .u-name{font:600 12px var(--sans); color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .side-user .u-role{font:500 10px var(--mono); color:var(--muted3); letter-spacing:.03em; margin-top:2px}
+  .side-user .u-logout{margin-left:auto; flex-shrink:0; border:1px solid var(--side-border); background:transparent; color:var(--side-text); border-radius:5px; padding:5px 8px; font-size:12px; cursor:pointer}
+  .side-user .u-logout:hover{border-color:var(--side-text); color:#fff}
   .side-foot{border-top:1px solid var(--side-border); padding-top:10px; font:400 10.5px var(--mono); color:var(--side-muted)}
+
+  /* login */
+  .login-wrap{position:fixed; inset:0; z-index:300; display:flex; align-items:center; justify-content:center; background:var(--bg); padding:24px}
+  .login-card{width:min(360px,100%); background:#fff; border:1px solid var(--border); border-radius:12px; padding:28px 26px; box-shadow:0 20px 60px oklch(0 0 0/0.08); display:flex; flex-direction:column}
+  .login-card .lb{display:flex; align-items:center; gap:10px; margin-bottom:2px}
+  .login-card .lb .nm{font:700 20px var(--sans); letter-spacing:-0.01em}
+  .login-card .lb svg{color:var(--orange)}
+  .login-card .lsub{font:400 12.5px var(--sans); color:var(--muted); margin-bottom:20px}
+  .login-card label{font:600 12px var(--sans); margin:10px 0 4px}
+  .login-card input{border:1px solid var(--border); border-radius:6px; padding:9px 11px; font:400 14px var(--sans); background:#fff}
+  .login-card input:focus{outline:none; border-color:var(--orange)}
+  .login-card button{margin-top:20px; justify-content:center; padding:10px}
+  .login-error{color:oklch(0.42 0.13 25); font:500 12px var(--sans); min-height:16px; margin-top:8px}
 
   .main{flex:1; display:flex; flex-direction:column; min-width:0; min-height:0; overflow:hidden}
   .content{flex:1; overflow:auto; min-height:0}
@@ -99,6 +117,10 @@
   .panel input,.panel select,.panel textarea{width:100%; border:1px solid var(--border); border-radius:4px; padding:7px 9px; font:400 13px var(--sans); background:#fff; color:var(--ink)}
   .panel input.auto{background:var(--head); color:var(--muted2); font-style:italic}
   .nota{font-size:11px; color:var(--blue); background:oklch(0.94 0.04 215); border-radius:6px; padding:7px 10px; margin-top:4px}
+  .actores{display:flex; flex-wrap:wrap; gap:6px}
+  .actor-chip{font:500 12px var(--sans); padding:5px 10px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--muted); cursor:pointer}
+  .actor-chip:hover{border-color:var(--muted3)}
+  .actor-chip.on{background:oklch(0.93 0.07 50); border-color:var(--orange); color:var(--orange-eyebrow)}
 
   .doc-panel{background:#fff; border:1px solid var(--border); border-radius:8px; padding:30px 36px; min-height:70vh}
   .doc-eyebrow{font:600 11px var(--mono); letter-spacing:.06em; text-transform:uppercase; color:var(--orange-eyebrow); margin-bottom:6px}
@@ -161,6 +183,10 @@
   .cfg-table th{background:var(--head); font-weight:600}
   .cfg-nuevo{background:var(--head); border:1px solid var(--border); border-radius:8px; padding:14px; display:grid; grid-template-columns:1fr 1fr; gap:10px}
   .cfg-nuevo input,.cfg-nuevo select{border:1px solid var(--border); border-radius:4px; padding:7px 9px; font:400 13px var(--sans)}
+  #dlg-password .field{margin-bottom:12px}
+  #dlg-password .field label{display:block; font:600 12px var(--sans); margin-bottom:4px}
+  #dlg-password .field input{width:100%; border:1px solid var(--border); border-radius:6px; padding:8px 10px; font:400 14px var(--sans)}
+  #dlg-password .field input:focus{outline:none; border-color:var(--orange)}
 
   /* vista imprimible */
   #vista{position:fixed; inset:0; background:oklch(0.42 0.013 40); overflow:auto; z-index:200; padding:24px 0}
@@ -197,7 +223,23 @@
 </head>
 <body>
 
-<div class="shell">
+<div id="login" class="login-wrap oculto">
+  <form class="login-card" onsubmit="event.preventDefault(); login()">
+    <div class="lb">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>
+      <span class="nm">DADM</span>
+    </div>
+    <div class="lsub">Data Architect Document Manager · Arquitectura Data</div>
+    <label>Usuario</label>
+    <input id="login-user" autocomplete="username" autofocus>
+    <label>Contraseña</label>
+    <input id="login-pass" type="password" autocomplete="current-password">
+    <div class="login-error" id="login-error"></div>
+    <button class="btn-primary" type="submit">Ingresar</button>
+  </form>
+</div>
+
+<div class="shell oculto">
   <aside class="sidebar">
     <div class="brand">
       <svg class="ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
@@ -208,11 +250,20 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/><path d="M14 4h7"/><path d="M14 9h7"/><path d="M14 15h7"/><path d="M14 20h7"/></svg>
         <span>Documentos</span>
       </button>
-      <button class="nav-btn" onclick="abrirConfig()">
+      <button id="nav-usuarios" class="nav-btn oculto" onclick="abrirUsuarios()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Usuarios</span>
+      </button>
+      <button id="nav-config" class="nav-btn oculto" onclick="abrirConfig()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
         <span>Configuración</span>
       </button>
     </nav>
+    <div class="side-user" id="side-user">
+      <div style="min-width:0"><div class="u-name" id="user-name"></div><div class="u-role" id="user-role"></div></div>
+      <button class="u-logout" onclick="abrirCambioPassword(false)" title="Cambiar contraseña">🔑</button>
+      <button class="u-logout" onclick="logout()" title="Cerrar sesión">Salir</button>
+    </div>
     <div class="side-foot">DADM v1.0.0 · Banco Galicia</div>
   </aside>
 
@@ -234,6 +285,14 @@
           <div class="card rfc" onclick="nuevoDoc('rfc')">
             <div class="ct"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg><b>Nuevo RFC</b></div>
             <div class="cd">Request for Comments — propuesta abierta al debate.</div>
+          </div>
+          <div class="card">
+            <div class="ct"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted)"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="m9 15 3-3 3 3"/></svg><b>Importar .docx</b></div>
+            <div class="cd">Crear un borrador desde un Word existente (aproximado — después ajustás ficha y tipos).</div>
+            <div style="display:flex;gap:8px;margin-top:10px">
+              <button class="acc-btn" onclick="event.stopPropagation(); importarDocx('adr')">como ADR</button>
+              <button class="acc-btn" onclick="event.stopPropagation(); importarDocx('rfc')">como RFC</button>
+            </div>
           </div>
         </div>
         <table class="tabla-docs">
@@ -263,6 +322,23 @@
   <div class="dlg-cab"><h3>Documento serializado (contrato adr/rfc.schema.json)</h3><button class="btn x" onclick="dlgJson.close()">Cerrar</button></div>
   <pre id="json-out"></pre>
   <div class="dlg-pie"><button class="btn" onclick="copiarJson()">Copiar</button></div>
+</dialog>
+
+<dialog id="dlg-usuarios">
+  <div class="dlg-cab"><h3>Gestión de usuarios</h3><button class="btn x" onclick="dlgUsuarios.close()">Cerrar</button></div>
+  <div class="dlg-body" id="usuarios-cuerpo"></div>
+</dialog>
+
+<dialog id="dlg-password">
+  <div class="dlg-cab"><h3 id="pw-titulo">Cambiar contraseña</h3><button class="btn x" id="pw-cerrar" onclick="dlgPassword.close()">Cerrar</button></div>
+  <div class="dlg-body" style="min-width:340px">
+    <div id="pw-forzado-msg" class="nota oculto" style="margin-bottom:12px">Por seguridad, definí una contraseña nueva antes de continuar.</div>
+    <div class="field"><label for="pw-actual">Contraseña actual</label><input id="pw-actual" type="password" autocomplete="current-password"></div>
+    <div class="field"><label for="pw-nueva">Nueva contraseña</label><input id="pw-nueva" type="password" autocomplete="new-password"></div>
+    <div class="field"><label for="pw-rep">Repetir nueva</label><input id="pw-rep" type="password" autocomplete="new-password"></div>
+    <div class="login-error" id="pw-error"></div>
+  </div>
+  <div class="dlg-pie"><button class="btn-primary" onclick="cambiarPassword()">Guardar contraseña</button></div>
 </dialog>
 
 <div id="vista" class="oculto"></div>
@@ -295,6 +371,30 @@ const CALLOUT = {
   advertencia: {bg:"oklch(0.90 0.05 25)",  fg:"oklch(0.42 0.13 25)",  bar:"oklch(0.58 0.16 25)",  label:"Advertencia"},
   cita:        {bg:"oklch(0.94 0.006 60)", fg:"oklch(0.32 0.012 35)", bar:"oklch(0.65 0.012 50)", label:"Cita"},
 };
+
+// actores (áreas/equipos) que pueden ser decisores/aprobadores — multi-select
+const ACTORES = ["Plataforma","Seguridad IDM","Célula de Modelado","Ingeniería","Advance Analytics","Gobierno","Arquitectura Data","Seguridad del Dato"];
+function actoresSel(key){ return (doc[key]||"").split("·").map(s=>s.trim()).filter(Boolean); }
+function toggleActor(key, actor){
+  const sel = actoresSel(key);
+  const i = sel.indexOf(actor);
+  if(i>=0) sel.splice(i,1); else sel.push(actor);
+  doc[key] = sel.join(" · ");
+  renderFicha();
+}
+function chipsActores(key){
+  const sel = actoresSel(key);
+  let h = `<div class="actores">`;
+  ACTORES.forEach(a=>{
+    h += `<button type="button" class="actor-chip${sel.includes(a)?" on":""}" onclick="toggleActor('${key}','${a.replace(/'/g,"\\'")}')">${a}</button>`;
+  });
+  // valores previos que no están en el catálogo actual (para no perder datos históricos)
+  sel.filter(a=>!ACTORES.includes(a)).forEach(a=>{
+    h += `<button type="button" class="actor-chip on" onclick="toggleActor('${key}','${a.replace(/'/g,"\\'")}')">${esc(a)} ✕</button>`;
+  });
+  h += `</div>`;
+  return h;
+}
 
 // guías de redacción (UX del editor; no son configuración)
 const GUIA = {
@@ -336,10 +436,76 @@ function derivar(c){
   };
 }
 
+// ================= autenticación (cliente) =================
+let USUARIO = null;
+let dirty = false; // hay cambios sin guardar en el editor
+const esAdmin = () => USUARIO && USUARIO.role === "architect_lead";
+
 async function init(){
+  try{ USUARIO = await api("GET","/api/me"); }
+  catch(e){ return mostrarLogin(); }
+  document.getElementById("login").classList.add("oculto");
+  document.querySelector(".shell").classList.remove("oculto");
+  aplicarRol();
+  // marcar cambios sin guardar ante cualquier edición dentro del editor
+  const ed = document.getElementById("editor");
+  ed.addEventListener("input", ()=>{ dirty = true; });
+  ed.addEventListener("change", ()=>{ dirty = true; });
   CATALOGOS = await api("GET","/api/config");
   CAT = derivar(CATALOGOS);
   await renderHome();
+  if(USUARIO.mustChangePassword) abrirCambioPassword(true);
+}
+window.addEventListener("beforeunload", (e)=>{ if(dirty){ e.preventDefault(); e.returnValue = ""; } });
+
+// ---- cambio de contraseña ----
+const dlgPassword = document.getElementById("dlg-password");
+let pwForzado = false;
+function abrirCambioPassword(forzado){
+  pwForzado = !!forzado;
+  ["pw-actual","pw-nueva","pw-rep"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("pw-error").textContent = "";
+  document.getElementById("pw-titulo").textContent = forzado ? "Definí tu nueva contraseña" : "Cambiar contraseña";
+  document.getElementById("pw-cerrar").classList.toggle("oculto", forzado);
+  document.getElementById("pw-forzado-msg").classList.toggle("oculto", !forzado);
+  dlgPassword.showModal();
+}
+dlgPassword.addEventListener("cancel", (e)=>{ if(pwForzado) e.preventDefault(); }); // no cerrable con Escape si es forzado
+async function cambiarPassword(){
+  const actual = document.getElementById("pw-actual").value;
+  const nueva = document.getElementById("pw-nueva").value;
+  const rep = document.getElementById("pw-rep").value;
+  const err = document.getElementById("pw-error");
+  if(nueva.length < 6){ err.textContent = "La nueva contraseña debe tener al menos 6 caracteres."; return; }
+  if(nueva !== rep){ err.textContent = "Las contraseñas no coinciden."; return; }
+  try{
+    await api("POST","/api/password",{actual, nueva});
+    if(pwForzado){ dirty = false; location.reload(); return; }
+    dlgPassword.close();
+    alert("Contraseña actualizada.");
+  }catch(e){ err.textContent = e.message; }
+}
+function mostrarLogin(){
+  document.querySelector(".shell").classList.add("oculto");
+  document.getElementById("login").classList.remove("oculto");
+  document.getElementById("login-user").focus();
+}
+function aplicarRol(){
+  document.getElementById("user-name").textContent = USUARIO.nombre || USUARIO.username;
+  document.getElementById("user-role").textContent = esAdmin() ? "ARCHITECT LEAD" : "ARCHITECT";
+  document.getElementById("nav-usuarios").classList.toggle("oculto", !esAdmin());
+  document.getElementById("nav-config").classList.toggle("oculto", !esAdmin());
+}
+async function login(){
+  const username = document.getElementById("login-user").value.trim();
+  const password = document.getElementById("login-pass").value;
+  try{ await api("POST","/api/login",{username,password}); location.reload(); }
+  catch(e){ document.getElementById("login-error").textContent = e.message; }
+}
+async function logout(){
+  dirty = false;
+  try{ await api("POST","/api/logout"); }catch(e){}
+  location.reload();
 }
 async function renderHome(){
   const docs = await api("GET","/api/documentos");
@@ -359,6 +525,8 @@ async function renderHome(){
   }).join("");
 }
 function irHome(){
+  if(dirty && !confirm("Tenés cambios sin guardar. ¿Salir sin guardar?")) return;
+  dirty = false;
   document.getElementById("editor").classList.add("oculto");
   document.getElementById("topbar").classList.add("oculto");
   document.getElementById("home").classList.remove("oculto");
@@ -394,16 +562,40 @@ async function abrirDocumento(id){
   doc = deserializar(j);
   mostrarEditor();
 }
+function importarDocx(tipo){
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  input.onchange = ()=>{
+    const file = input.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = async ()=>{
+      document.body.style.cursor = "wait";
+      try{
+        const r = await api("POST","/api/importar",{tipo, data:reader.result});
+        document.body.style.cursor = "";
+        await abrirDocumento(r.id);
+      }catch(e){
+        document.body.style.cursor = "";
+        alert("No se pudo importar: "+e.message);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+  input.click();
+}
 function mostrarEditor(){
   document.getElementById("home").classList.add("oculto");
   document.getElementById("editor").classList.remove("oculto");
   document.getElementById("topbar").classList.remove("oculto");
   document.getElementById("nav-docs").classList.remove("active");
+  dirty = false; // recién cargado / creado
   renderTodo();
 }
 async function guardar(silencioso){
   try{
     await api("PUT","/api/documentos/"+doc.id, serializar());
+    dirty = false;
     guardadoMsg = "✔ Guardado "+new Date().toLocaleTimeString();
     const el = document.getElementById("guardado"); if(el) el.textContent = guardadoMsg;
     return true;
@@ -413,6 +605,11 @@ async function guardar(silencioso){
   }
 }
 async function guardarYVolver(){ if(await guardar()) irHome(); }
+async function eliminarDoc(){
+  if(!confirm(`¿Eliminar el borrador ${doc.id}? Esta acción no se puede deshacer.`)) return;
+  try{ await api("DELETE","/api/documentos/"+doc.id); irHome(); }
+  catch(e){ alert("No se pudo eliminar: "+e.message); }
+}
 
 function desBloques(bs){
   return (bs||[]).map(b=>{
@@ -457,6 +654,7 @@ function renderTopbar(){
   h += `<span class="tb-ver">v${doc.version}</span>`;
   h += `<span id="guardado" class="tb-saved">${guardadoMsg}</span>`;
   h += `<div style="flex:1"></div><div class="tb-actions">`;
+  if(esAdmin() && doc.estado==="borrador") h += `<button class="btn" style="border-color:oklch(0.90 0.05 25);color:oklch(0.42 0.13 25)" onclick="eliminarDoc()">Eliminar</button>`;
   if(est.sig.length) h += `<button class="btn" onclick="transicionar('${est.sig[0]}')">→ ${CAT.estados[doc.tipo][est.sig[0]].et}</button>`;
   h += `<button class="btn-primary" onclick="guardarYVolver()">Guardar y volver</button>`;
   h += `<button class="btn" onclick="abrirVista()">Vista / Exportar</button>`;
@@ -493,7 +691,7 @@ async function transicionar(nuevo){
   doc.estado = nuevo;
   const nv = (nuevo==="aprobado"||nuevo==="cerrado") ? "1.0" : doc.version;
   doc.version = nv;
-  doc.historial.push({version:nv, fecha:hoy(), autor:"(vos)", cambio:"Transición de estado → "+CAT.estados[doc.tipo][nuevo].et});
+  doc.historial.push({version:nv, fecha:hoy(), autor:USUARIO.nombre||USUARIO.username, cambio:"Transición de estado → "+CAT.estados[doc.tipo][nuevo].et});
   const ok = await guardar();
   if(!ok){ doc.estado = anterior; doc.historial.pop(); renderTodo(); return; }
   renderTodo();
@@ -516,7 +714,7 @@ function renderFicha(){
   if(esAdr){
     h += campo("Ámbito",1,`<select onchange="doc.ambito=this.value"><option value="">— elegir —</option>${CAT.ambitos.map(a=>`<option value="${a[0]}" ${doc.ambito===a[0]?"selected":""}>${a[1]}</option>`).join("")}</select>`);
     h += campo("Autor(es)",1,inp("autores","Nombre — Rol, Equipo (separar con ·)"));
-    h += campo("Decisores / Aprobadores",1,inp("decisores","Personas o equipos que aprueban"));
+    h += campo("Decisores / Aprobadores",1,chipsActores("decisores"));
     h += campo("Nota de alcance",0,inp("nota_alcance","Qué fija este ADR y qué queda afuera"),1);
     h += campo("Relaciones",0,inp("relaciones","deriva_de: RFC-0004 · reemplaza_a: ADR-002"),1);
   } else {
@@ -565,7 +763,7 @@ function renderDoc(){
       const sbase = `${base}.subsecciones[${ui}]`;
       h += `<div class="subsec"><div class="sec-cab"><h4>${si+1}.${ui+1} ${esc(sub.titulo)}</h4>
         <div class="acc"><button class="acc-btn" onclick="menuBloque(event,'${sbase}.bloques')">+ bloque</button>
-        <button class="acc-btn danger" onclick="if(confirm('¿Quitar la subsección?')){${base}.subsecciones.splice(${ui},1); renderDoc()}" title="Quitar subsección">✕</button></div></div>`;
+        <button class="acc-btn danger" onclick="if(confirm('¿Quitar la subsección?')){${base}.subsecciones.splice(${ui},1); dirty=true; renderDoc()}" title="Quitar subsección">✕</button></div></div>`;
       sub.bloques.forEach((b,bi)=>{ h += renderBloque(b,`${sbase}.bloques`,bi,sub.ph); });
       h += `</div>`;
     });
@@ -580,7 +778,7 @@ function renderDoc(){
 
 function renderBloque(b,expr,bi,ph){
   const B = `${expr}[${bi}]`;
-  const quitar = `<button class="quitar" onclick="${expr}.splice(${bi},1); renderDoc()" title="Quitar bloque">✕</button>`;
+  const quitar = `<button class="quitar" onclick="${expr}.splice(${bi},1); dirty=true; renderDoc()" title="Quitar bloque">✕</button>`;
   if(b.tipo==="texto") return `<div class="bloque">${quitar}<div class="btx" contenteditable="true" data-ph="${escA(ph||'Escribí acá…')}" oninput="${B}.contenido=this.innerText">${esc(b.contenido)}</div></div>`;
   if(b.tipo==="callout"){
     const est = b.estilo||"info"; const cs = CALLOUT[est];
@@ -605,13 +803,13 @@ function renderBloque(b,expr,bi,ph){
       f.forEach((c,ci)=>{ t += `<td contenteditable="true" oninput="${B}.filas[${fi}][${ci}]=this.innerText">${esc(c)}</td>`; });
       t += `</tr>`;
     });
-    t += `</table><button class="link-btn" onclick="${B}.filas.push(new Array(${b.encabezados.length}).fill('')); renderDoc()">+ fila</button>`;
-    if(din) t += ` <button class="link-btn" style="margin-left:8px" onclick="let bl=${B}; bl.encabezados.push('Col'); bl.filas.forEach(f=>f.push('')); renderDoc()">+ columna</button>`;
+    t += `</table><button class="link-btn" onclick="${B}.filas.push(new Array(${b.encabezados.length}).fill('')); dirty=true; renderDoc()">+ fila</button>`;
+    if(din) t += ` <button class="link-btn" style="margin-left:8px" onclick="let bl=${B}; bl.encabezados.push('Col'); bl.filas.forEach(f=>f.push('')); dirty=true; renderDoc()">+ columna</button>`;
     return t + `</div>`;
   }
   return "";
 }
-function setEstilo(expr,bi,k){ eval(expr)[bi].estilo=k; renderDoc(); }
+function setEstilo(expr,bi,k){ eval(expr)[bi].estilo=k; dirty=true; renderDoc(); }
 
 function agregarSubseccion(si){
   const sec = doc.cuerpo[si];
@@ -622,6 +820,7 @@ function agregarSubseccion(si){
   const sub = (def.subs||[]).find(s=>s.t===titulo);
   sec.subsecciones = sec.subsecciones||[];
   sec.subsecciones.push({titulo, ph:sub?sub.ph:"", bloques:[{tipo:"texto",contenido:""}]});
+  dirty = true;
   renderDoc();
 }
 
@@ -660,9 +859,10 @@ function agregarSeccion(idx){
     titulo = def.et;
   }
   doc.cuerpo.push(seccionNueva(def, titulo));
+  dirty = true;
   renderDoc();
 }
-function quitarSeccion(si){ if(confirm("¿Quitar la sección «"+doc.cuerpo[si].titulo+"» y su contenido?")){ doc.cuerpo.splice(si,1); renderDoc(); } }
+function quitarSeccion(si){ if(confirm("¿Quitar la sección «"+doc.cuerpo[si].titulo+"» y su contenido?")){ doc.cuerpo.splice(si,1); dirty=true; renderDoc(); } }
 function menuBloque(ev,expr){
   let h = `<div class="grupo">Objetos simples</div>`;
   h += `<button onclick="agregarBloque('${expr}','texto')">Texto</button>`;
@@ -686,6 +886,7 @@ function agregarBloque(expr,tipo){
   else if(tipo==="codigo") b={tipo:"codigo",lenguaje:"sql",contenido:""};
   else b={tipo:"imagen",recurso:"",epigrafe:""};
   eval(expr).push(b);
+  dirty = true;
   renderDoc();
 }
 
@@ -702,6 +903,7 @@ function subirImagen(expr,bi){
       try{
         const r = await api("POST","/api/imagenes", {data: reader.result});
         eval(`${expr}[${bi}]`).recurso = r.id;
+        dirty = true;
         renderDoc();
       }catch(e){
         alert("No se pudo subir la imagen: "+e.message);
@@ -714,7 +916,7 @@ function subirImagen(expr,bi){
 
 // ================= configuración =================
 const dlgConfig = document.getElementById("dlg-config");
-function abrirConfig(){ renderConfig(); dlgConfig.showModal(); }
+function abrirConfig(){ if(!esAdmin()) return; renderConfig(); dlgConfig.showModal(); }
 async function guardarConfig(){
   CAT = derivar(CATALOGOS);
   try{ await api("PUT","/api/config",CATALOGOS); }catch(e){ alert("No se pudo guardar la configuración: "+e.message); }
@@ -775,6 +977,60 @@ function quitarApartado(tipo,i){
   CATALOGOS["secciones_"+tipo].splice(i,1); guardarConfig(); renderConfig();
 }
 
+// ================= usuarios (admin) =================
+const dlgUsuarios = document.getElementById("dlg-usuarios");
+async function abrirUsuarios(){ if(!esAdmin()) return; await renderUsuarios(); dlgUsuarios.showModal(); }
+async function renderUsuarios(){
+  let us = [];
+  try{ us = await api("GET","/api/usuarios"); }catch(e){ alert("No se pudieron cargar los usuarios: "+e.message); return; }
+  const rol = (u,r) => `<option value="${r}" ${u.role===r?"selected":""}>${r==="architect_lead"?"Architect Lead":"Architect"}</option>`;
+  let h = `<table class="cfg-table"><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th></th></tr>`;
+  us.forEach(u=>{
+    const uu = u.username.replace(/'/g,"\\'");
+    h += `<tr>
+      <td><b>${esc(u.username)}</b>${u.username===USUARIO.username?' <span style="font:400 11px var(--sans);color:var(--muted3)">(vos)</span>':''}</td>
+      <td>${esc(u.nombre||"")}</td>
+      <td><select onchange="cambiarRol('${uu}',this.value)">${rol(u,"architect")}${rol(u,"architect_lead")}</select></td>
+      <td style="white-space:nowrap">
+        <button class="acc-btn" onclick="resetPass('${uu}')">Reset pass</button>
+        <button class="acc-btn danger" onclick="borrarUsuario('${uu}')" title="Eliminar usuario">✕</button>
+      </td></tr>`;
+  });
+  h += `</table>`;
+  h += `<h4 class="cfg-h">Nuevo usuario</h4>
+  <div class="cfg-nuevo">
+    <input id="nu-user" placeholder="Usuario (login)">
+    <input id="nu-nombre" placeholder="Nombre y apellido">
+    <input id="nu-pass" type="password" placeholder="Contraseña inicial">
+    <select id="nu-role"><option value="architect">Architect</option><option value="architect_lead">Architect Lead</option></select>
+    <button class="btn-primary" style="grid-column:1/-1;justify-content:center" onclick="crearUsuario()">+ Crear usuario</button>
+  </div>`;
+  document.getElementById("usuarios-cuerpo").innerHTML = h;
+}
+async function crearUsuario(){
+  const username = document.getElementById("nu-user").value.trim();
+  const nombre = document.getElementById("nu-nombre").value.trim();
+  const password = document.getElementById("nu-pass").value;
+  const role = document.getElementById("nu-role").value;
+  if(!username || !password) return alert("Usuario y contraseña son obligatorios.");
+  try{ await api("POST","/api/usuarios",{username,nombre,password,role}); renderUsuarios(); }
+  catch(e){ alert("No se pudo crear: "+e.message); }
+}
+async function cambiarRol(username,role){
+  try{ await api("PUT","/api/usuarios/"+encodeURIComponent(username),{role}); }
+  catch(e){ alert("No se pudo cambiar el rol: "+e.message); renderUsuarios(); }
+}
+async function resetPass(username){
+  const p = prompt("Nueva contraseña para "+username+":"); if(!p) return;
+  try{ await api("PUT","/api/usuarios/"+encodeURIComponent(username),{password:p}); alert("Contraseña actualizada."); }
+  catch(e){ alert("No se pudo: "+e.message); }
+}
+async function borrarUsuario(username){
+  if(!confirm("¿Eliminar el usuario "+username+"?")) return;
+  try{ await api("DELETE","/api/usuarios/"+encodeURIComponent(username)); renderUsuarios(); }
+  catch(e){ alert("No se pudo eliminar: "+e.message); }
+}
+
 // ================= comentarios RFC =================
 function renderComentarios(){
   const panel = document.getElementById("panel-comentarios");
@@ -801,6 +1057,7 @@ function agregarComentario(){
   const comentario = prompt("Comentario:"); if(!comentario) return;
   const tipo = CAT.tiposComentario[doc.comentarios.length % CAT.tiposComentario.length];
   doc.comentarios.push({num:doc.comentarios.length+1, fecha:hoy(), revisor, tipo, seccion:"", comentario});
+  dirty = true;
   renderComentarios();
 }
 function resolver(i){
@@ -812,6 +1069,7 @@ function resolver(i){
     const d = prompt("DADM exige justificación para rechazar un comentario:"); if(!d){ c.resolucion=null; return; }
     c.detalle = d;
   }
+  dirty = true;
   renderComentarios();
 }
 

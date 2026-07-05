@@ -1,0 +1,244 @@
+<mxfile host="Electron" agent="DADM">
+  <diagram id="dadm-arquitectura" name="DADM · Arquitectura">
+    <mxGraphModel dx="2991" dy="923" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1650" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;fontSize=18;fontStyle=1;align=left;verticalAlign=middle;fontColor=#1A1A1A;" value="DADM 1.0.0 — Data Architect Document Manager · Arquitectura de la solución" vertex="1">
+          <mxGeometry height="30" width="900" x="40" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="subt" parent="1" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontColor=#666666;" value="Node + Express · MongoDB · frontend single-file · export/import .docx · auth por roles" vertex="1">
+          <mxGeometry height="20" width="900" x="40" y="36" as="geometry" />
+        </mxCell>
+        <mxCell id="zCli" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FBFBFB;strokeColor=#6C8EBF;dashed=1;verticalAlign=top;align=center;fontStyle=1;fontSize=13;spacingLeft=10;spacingTop=8;arcSize=4;" value="CLIENTE — Navegador · public/index.html (SPA vanilla JS)" vertex="1">
+          <mxGeometry height="590" width="930" x="-530" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="zSrv" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FBFBFB;strokeColor=#82B366;dashed=1;verticalAlign=top;align=left;fontStyle=1;fontSize=13;spacingLeft=10;spacingTop=8;arcSize=4;" value="SERVIDOR — Node + Express · server.js" vertex="1">
+          <mxGeometry height="980" width="830" x="440" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="zDom" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FBFBFB;strokeColor=#D79B00;dashed=1;verticalAlign=top;align=left;fontStyle=1;fontSize=13;spacingLeft=10;spacingTop=8;arcSize=4;" value="MÓDULOS DE DOMINIO" vertex="1">
+          <mxGeometry height="560" width="320" x="1290" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="zDb" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FBFBFB;strokeColor=#9673A6;dashed=1;verticalAlign=top;align=left;fontStyle=1;fontSize=13;spacingLeft=10;spacingTop=8;arcSize=4;" value="MongoDB — base DADM · db/mongo.js" vertex="1">
+          <mxGeometry height="560" width="300" x="1650" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="zInf" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FBFBFB;strokeColor=#999999;dashed=1;verticalAlign=top;align=left;fontStyle=1;fontSize=13;spacingLeft=10;spacingTop=8;arcSize=4;" value="INFRAESTRUCTURA / CONFIG" vertex="1">
+          <mxGeometry height="200" width="660" x="1290" y="670" as="geometry" />
+        </mxCell>
+        <mxCell id="cLogin" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;Login&lt;/b&gt;&lt;br&gt;usuario / contraseña" vertex="1">
+          <mxGeometry height="46" width="320" x="-500" y="132" as="geometry" />
+        </mxCell>
+        <mxCell id="cSide" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;Sidebar&lt;/b&gt;&lt;br&gt;Documentos · Usuarios* · Configuración*&lt;br&gt;usuario + rol · Salir" vertex="1">
+          <mxGeometry height="66" width="320" x="-170" y="178" as="geometry" />
+        </mxCell>
+        <mxCell id="cHome" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;Home&lt;/b&gt;&lt;br&gt;Nuevo ADR · Nuevo RFC · Importar .docx&lt;br&gt;tabla de documentos" vertex="1">
+          <mxGeometry height="66" width="320" x="-170" y="252" as="geometry" />
+        </mxCell>
+        <mxCell id="cEdit" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;Editor&lt;/b&gt;&lt;br&gt;topbar: estado · transición · guardar · eliminar*&lt;br&gt;ficha · secciones / bloques (texto, callout,&lt;br&gt;código, imagen, tablas) · comentarios RFC" vertex="1">
+          <mxGeometry height="94" width="320" x="-170" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="cDlg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;Diálogos&lt;/b&gt;&lt;br&gt;Configuración* · Usuarios* · Ver JSON" vertex="1">
+          <mxGeometry height="52" width="320" x="-170" y="431" as="geometry" />
+        </mxCell>
+        <mxCell id="cVista" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;Vista imprimible&lt;/b&gt;&lt;br&gt;Imprimir / PDF · Descargar .docx" vertex="1">
+          <mxGeometry height="52" width="320" x="-170" y="495" as="geometry" />
+        </mxCell>
+        <mxCell id="cApi" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;api()&lt;/b&gt; — fetch con cookie de sesión" vertex="1">
+          <mxGeometry height="44" width="210" x="190" y="318" as="geometry" />
+        </mxCell>
+        <mxCell id="cNota" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF6E6;strokeColor=#D79B00;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="* solo visible/permitido para Architect Lead" vertex="1">
+          <mxGeometry height="34" width="320" x="-180" y="578" as="geometry" />
+        </mxCell>
+        <mxCell id="sStatic" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#82B366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="express.static → public/" vertex="1">
+          <mxGeometry height="38" width="360" x="460" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="sMw" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;Middleware de sesión&lt;/b&gt;&lt;br&gt;cookie dadm_token → verifyToken → req.user" vertex="1">
+          <mxGeometry height="50" width="360" x="460" y="156" as="geometry" />
+        </mxCell>
+        <mxCell id="sGuard" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;requireAuth · requireAdmin&lt;/b&gt; (rol)" vertex="1">
+          <mxGeometry height="44" width="360" x="690" y="224" as="geometry" />
+        </mxCell>
+        <mxCell id="sAuth" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;Rutas auth&lt;/b&gt; (públicas)&lt;br&gt;POST /login · /logout · GET /me" vertex="1">
+          <mxGeometry height="50" width="360" x="675" y="284" as="geometry" />
+        </mxCell>
+        <mxCell id="sUsers" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;Rutas usuarios&lt;/b&gt; (admin)&lt;br&gt;GET / POST / PUT / DELETE /api/usuarios" vertex="1">
+          <mxGeometry height="50" width="360" x="460" y="334" as="geometry" />
+        </mxCell>
+        <mxCell id="sCfg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;Rutas config&lt;/b&gt;&lt;br&gt;GET (auth) · PUT (admin)" vertex="1">
+          <mxGeometry height="50" width="360" x="460" y="396" as="geometry" />
+        </mxCell>
+        <mxCell id="sDocs" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;Rutas documentos&lt;/b&gt;&lt;br&gt;GET · POST · PUT · GET/:id&lt;br&gt;DELETE (admin, solo borrador)" vertex="1">
+          <mxGeometry height="64" width="360" x="450" y="596" as="geometry" />
+        </mxCell>
+        <mxCell id="sExp" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;GET /:id/export.docx&lt;/b&gt;" vertex="1">
+          <mxGeometry height="44" width="360" x="450" y="680" as="geometry" />
+        </mxCell>
+        <mxCell id="sImp" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;POST /api/importar&lt;/b&gt; (.docx)" vertex="1">
+          <mxGeometry height="44" width="360" x="450" y="748" as="geometry" />
+        </mxCell>
+        <mxCell id="sImg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;Rutas imágenes&lt;/b&gt;&lt;br&gt;POST · GET/:id · DELETE/:id" vertex="1">
+          <mxGeometry height="50" width="360" x="790" y="800" as="geometry" />
+        </mxCell>
+        <mxCell id="sNext" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#82B366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="nextId() — ID correlativo (ADR-NNN / RFC-NNNN)" vertex="1">
+          <mxGeometry height="40" width="360" x="465" y="890" as="geometry" />
+        </mxCell>
+        <mxCell id="sSeed" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#82B366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="seedConfig() · seedAdmin()&lt;br&gt;(carga catálogo y Architect Lead inicial)" vertex="1">
+          <mxGeometry height="52" width="360" x="460" y="930" as="geometry" />
+        </mxCell>
+        <mxCell id="dAuth" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;auth.js&lt;/b&gt;&lt;br&gt;scrypt (hash) · HMAC (token de sesión)" vertex="1">
+          <mxGeometry height="50" width="280" x="1310" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="dAjv" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;Ajv&lt;/b&gt; — validación de schema" vertex="1">
+          <mxGeometry height="42" width="280" x="1310" y="182" as="geometry" />
+        </mxCell>
+        <mxCell id="dRender" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;renderer.js&lt;/b&gt;&lt;br&gt;JSON → .docx (lib docx)" vertex="1">
+          <mxGeometry height="50" width="280" x="1310" y="236" as="geometry" />
+        </mxCell>
+        <mxCell id="dImport" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;importer.js&lt;/b&gt;&lt;br&gt;.docx → modelo (mammoth + html-parser)" vertex="1">
+          <mxGeometry height="50" width="280" x="1310" y="298" as="geometry" />
+        </mxCell>
+        <mxCell id="dSchema" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;schemas/&lt;/b&gt;&lt;br&gt;adr.schema · rfc.schema&lt;br&gt;catalogos.json (seed)" vertex="1">
+          <mxGeometry height="62" width="280" x="1310" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="dMongo" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D79B00;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;db/mongo.js&lt;/b&gt; — conexión + índices" vertex="1">
+          <mxGeometry height="46" width="280" x="1310" y="434" as="geometry" />
+        </mxCell>
+        <mxCell id="bDocs" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;documents&lt;/b&gt;&lt;br&gt;ADR/RFC · _id = ADR-NNN / RFC-NNNN" vertex="1">
+          <mxGeometry height="60" width="260" x="1670" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="bCfg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;config&lt;/b&gt;&lt;br&gt;catálogo vigente (clave: catalogos)" vertex="1">
+          <mxGeometry height="50" width="260" x="1670" y="196" as="geometry" />
+        </mxCell>
+        <mxCell id="bImg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;imagenes&lt;/b&gt;&lt;br&gt;PNG/JPG binario · _id = UUID" vertex="1">
+          <mxGeometry height="50" width="260" x="1670" y="262" as="geometry" />
+        </mxCell>
+        <mxCell id="bUsr" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;users&lt;/b&gt;&lt;br&gt;_id = usuario · role&lt;br&gt;passwordHash (scrypt)" vertex="1">
+          <mxGeometry height="62" width="260" x="1670" y="328" as="geometry" />
+        </mxCell>
+        <mxCell id="iDocker" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#999999;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;docker-compose.yml&lt;/b&gt;&lt;br&gt;contenedor MongoDB (mongo:latest, :27017)" vertex="1">
+          <mxGeometry height="52" width="300" x="1310" y="710" as="geometry" />
+        </mxCell>
+        <mxCell id="iEnv" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#999999;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;.env&lt;/b&gt; (no commiteado)&lt;br&gt;MONGO_URI · AUTH_SECRET · ADMIN_*" vertex="1">
+          <mxGeometry height="52" width="300" x="1630" y="710" as="geometry" />
+        </mxCell>
+        <mxCell id="iNode" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#999999;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="Node ≥ 22.5 · Express · frontend single-file · sin build" vertex="1">
+          <mxGeometry height="40" width="620" x="1310" y="774" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="cSide" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;labelBackgroundColor=#FFFFFF;jumpStyle=arc;" target="cApi" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="cHome" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;labelBackgroundColor=#FFFFFF;" target="cApi" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="cEdit" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;labelBackgroundColor=#FFFFFF;" target="cApi" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="cDlg" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;labelBackgroundColor=#FFFFFF;" target="cApi" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="cLogin" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;labelBackgroundColor=#FFFFFF;" target="sAuth" value="POST /login">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="cVista" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;labelBackgroundColor=#FFFFFF;" target="sExp" value="GET export.docx">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="cHome" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;labelBackgroundColor=#FFFFFF;jumpStyle=arc;" target="sImp" value="Importar .docx">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="cApi" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;labelBackgroundColor=#FFFFFF;" target="sMw" value="/api/* + cookie">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="sMw" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;dashed=1;fontSize=10;labelBackgroundColor=#FFFFFF;" target="dAuth" value="verifyToken">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="sMw" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;labelBackgroundColor=#FFFFFF;" target="sGuard" value="req.user">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="sAuth" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;dashed=1;fontSize=10;labelBackgroundColor=#FFFFFF;" target="dAuth" value="verifyPassword / signToken">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="sAuth" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;labelBackgroundColor=#FFFFFF;" target="bUsr" value="buscar usuario">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="1" source="sGuard" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;labelBackgroundColor=#FFFFFF;" target="sUsers" value="admin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="sGuard" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;labelBackgroundColor=#FFFFFF;" target="sCfg" value="auth / admin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" edge="1" parent="1" source="sGuard" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;labelBackgroundColor=#FFFFFF;" target="sDocs" value="auth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" edge="1" parent="1" source="sGuard" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;labelBackgroundColor=#FFFFFF;" target="sImg" value="auth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="sGuard" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;labelBackgroundColor=#FFFFFF;" target="sImp" value="auth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" edge="1" parent="1" source="sGuard" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;labelBackgroundColor=#FFFFFF;" target="sExp" value="auth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19" edge="1" parent="1" source="sUsers" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;labelBackgroundColor=#FFFFFF;" target="bUsr" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" edge="1" parent="1" source="sUsers" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;dashed=1;fontSize=10;labelBackgroundColor=#FFFFFF;" target="dAuth" value="hashPassword">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e21" edge="1" parent="1" source="sCfg" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;labelBackgroundColor=#FFFFFF;" target="bCfg" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e22" edge="1" parent="1" source="sDocs" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;dashed=1;fontSize=10;labelBackgroundColor=#FFFFFF;" target="dAjv" value="validar">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e23" edge="1" parent="1" source="dAjv" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;dashed=1;fontSize=10;labelBackgroundColor=#FFFFFF;" target="dSchema" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e24" edge="1" parent="1" source="sDocs" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;labelBackgroundColor=#FFFFFF;" target="bDocs" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e25" edge="1" parent="1" source="sExp" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;dashed=1;fontSize=10;labelBackgroundColor=#FFFFFF;" target="dRender" value="render">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e26" edge="1" parent="1" source="sExp" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;labelBackgroundColor=#FFFFFF;" target="bDocs" value="leer doc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e27" edge="1" parent="1" source="sExp" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;labelBackgroundColor=#FFFFFF;" target="bImg" value="adjuntar imágenes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e28" edge="1" parent="1" source="sImp" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;dashed=1;fontSize=10;labelBackgroundColor=#FFFFFF;" target="dImport" value="parsear">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e29" edge="1" parent="1" source="sImp" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;labelBackgroundColor=#FFFFFF;" target="bImg" value="guardar imágenes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e30" edge="1" parent="1" source="sImp" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;labelBackgroundColor=#FFFFFF;" target="bDocs" value="crear borrador">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e31" edge="1" parent="1" source="sImg" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;labelBackgroundColor=#FFFFFF;" target="bImg" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e32" edge="1" parent="1" source="dMongo" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#9673A6;dashed=1;fontSize=10;labelBackgroundColor=#FFFFFF;" target="bDocs" value="colecciones">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e33" edge="1" parent="1" source="sSeed" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;dashed=1;fontSize=10;labelBackgroundColor=#FFFFFF;" target="dSchema" value="seed">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e34" edge="1" parent="1" source="sSeed" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;dashed=1;fontSize=10;labelBackgroundColor=#FFFFFF;" target="bCfg" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e35" edge="1" parent="1" source="sSeed" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#555555;dashed=1;fontSize=10;labelBackgroundColor=#FFFFFF;" target="bUsr" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e36" edge="1" parent="1" source="iDocker" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#999999;dashed=1;fontSize=10;labelBackgroundColor=#FFFFFF;" target="dMongo" value=":27017">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e37" edge="1" parent="1" source="iEnv" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#999999;dashed=1;fontSize=10;labelBackgroundColor=#FFFFFF;" target="sMw" value="AUTH_SECRET">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e38" edge="1" parent="1" source="iEnv" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#999999;dashed=1;fontSize=10;labelBackgroundColor=#FFFFFF;" target="dMongo" value="MONGO_URI">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

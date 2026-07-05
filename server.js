@@ -12,9 +12,12 @@ const crypto = require("crypto");
 const { Binary } = require("mongodb");
 const Ajv = require("ajv/dist/2020");
 const { renderDocx } = require("./renderer");
-const { conectarMongo, documentos, config, imagenes } = require("./db/mongo");
+const { importarDocx } = require("./importer");
+const { conectarMongo, documentos, config, imagenes, usuarios, pingMongo } = require("./db/mongo");
+const { hashPassword, verifyPassword, signToken, verifyToken, parseCookies, TTL_S } = require("./auth");
 
 const PORT = process.env.PORT || 8321;
+const ROLES = ["architect", "architect_lead"];
 
 // validadores de schema
 const ajv = new Ajv({ strict: false, validateFormats: false });
@@ -34,13 +37,136 @@ async function seedConfig() {
 }
 const getConfig = async () => (await config().findOne({ clave: "catalogos" })).valor;
 
+// seed del Architect Lead inicial si no hay usuarios
+async function seedAdmin() {
+  if (await usuarios().countDocuments() > 0) return;
+  const u = process.env.ADMIN_USER || "admin";
+  const p = process.env.ADMIN_PASS || "admin";
+  await usuarios().insertOne({ _id: u, nombre: "Administrador", role: "architect_lead", passwordHash: hashPassword(p), mustChangePassword: true, creado: new Date().toISOString() });
+  console.log(`Usuario Architect Lead inicial creado: "${u}" — deberá cambiar la contraseña en el primer login.`);
+}
+
+// avisos de configuración insegura al arrancar
+function avisarSeguridad() {
+  if (!process.env.AUTH_SECRET) console.warn("⚠  AUTH_SECRET no está definido: se usa un secreto por defecto (INSEGURO). Definilo en .env.");
+  if ((process.env.ADMIN_PASS || "admin") === "admin") console.warn("⚠  ADMIN_PASS por defecto ('admin'): se fuerza el cambio en el primer login. Cambiala en .env.");
+}
+
 const app = express();
 app.use(express.json({ limit: "20mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
+// ---------- autenticación ----------
+const cookieSesion = (token, maxAge) => `dadm_token=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${maxAge}`;
+
+// resuelve req.user (o null) desde la cookie firmada, para todas las requests
+app.use((req, res, next) => {
+  const token = parseCookies(req).dadm_token;
+  req.user = token ? verifyToken(token) : null;
+  next();
+});
+const requireAuth = (req, res, next) => req.user ? next() : res.status(401).json({ error: "No autenticado" });
+const requireAdmin = (req, res, next) =>
+  (req.user && req.user.role === "architect_lead") ? next() : res.status(403).json({ error: "Requiere rol Architect Lead" });
+
+// health-check público (monitoreo): pinguea Mongo sin requerir sesión
+app.get("/api/health", async (req, res) => {
+  try { await pingMongo(); res.json({ ok: true, mongo: "up" }); }
+  catch { res.status(503).json({ ok: false, mongo: "down" }); }
+});
+
+// rate-limit de login por IP (en memoria): frena fuerza bruta
+const loginFails = new Map();
+const LOGIN_MAX = 8, LOGIN_WINDOW_MS = 15 * 60 * 1000, LOGIN_BLOCK_MS = 10 * 60 * 1000;
+const loginBloqueado = ip => { const e = loginFails.get(ip); return !!(e && e.until && e.until > Date.now()); };
+function loginFallo(ip) {
+  const now = Date.now();
+  let e = loginFails.get(ip);
+  if (!e || (e.first && now - e.first > LOGIN_WINDOW_MS)) e = { count: 0, first: now };
+  e.count++;
+  if (e.count >= LOGIN_MAX) e.until = now + LOGIN_BLOCK_MS;
+  loginFails.set(ip, e);
+}
+
+const perfilDe = u => ({ username: u._id, role: u.role, nombre: u.nombre || u._id, mustChangePassword: !!u.mustChangePassword });
+
+app.post("/api/login", async (req, res) => {
+  const ip = req.ip || req.socket.remoteAddress || "?";
+  if (loginBloqueado(ip)) return res.status(429).json({ error: "Demasiados intentos fallidos. Esperá unos minutos e intentá de nuevo." });
+  const { username, password } = req.body || {};
+  const u = username ? await usuarios().findOne({ _id: username }) : null;
+  if (!u || !verifyPassword(password || "", u.passwordHash)) { loginFallo(ip); return res.status(401).json({ error: "Usuario o contraseña incorrectos" }); }
+  loginFails.delete(ip);
+  const perfil = perfilDe(u);
+  res.setHeader("Set-Cookie", cookieSesion(signToken(perfil), TTL_S));
+  res.json(perfil);
+});
+app.post("/api/logout", (req, res) => {
+  res.setHeader("Set-Cookie", cookieSesion("", 0));
+  res.json({ ok: true });
+});
+app.get("/api/me", (req, res) => {
+  if (!req.user) return res.status(401).json({ error: "No autenticado" });
+  res.json({ username: req.user.username, role: req.user.role, nombre: req.user.nombre, mustChangePassword: !!req.user.mustChangePassword });
+});
+
+// de acá en más, toda la API requiere sesión
+app.use("/api", requireAuth);
+
+// cambio de la propia contraseña (cualquier usuario autenticado)
+app.post("/api/password", async (req, res) => {
+  const { actual, nueva } = req.body || {};
+  if (!nueva || String(nueva).length < 6) return res.status(400).json({ error: "La nueva contraseña debe tener al menos 6 caracteres" });
+  const u = await usuarios().findOne({ _id: req.user.username });
+  if (!u || !verifyPassword(actual || "", u.passwordHash)) return res.status(401).json({ error: "La contraseña actual no es correcta" });
+  await usuarios().updateOne({ _id: u._id }, { $set: { passwordHash: hashPassword(nueva), mustChangePassword: false } });
+  const perfil = { ...perfilDe(u), mustChangePassword: false };
+  res.setHeader("Set-Cookie", cookieSesion(signToken(perfil), TTL_S)); // token fresco sin el flag
+  res.json({ ok: true });
+});
+
+// ---------- usuarios (solo Architect Lead) ----------
+app.get("/api/usuarios", requireAdmin, async (req, res) => {
+  const us = await usuarios().find({}, { projection: { passwordHash: 0 } }).sort({ _id: 1 }).toArray();
+  res.json(us.map(u => ({ username: u._id, nombre: u.nombre, role: u.role })));
+});
+app.post("/api/usuarios", requireAdmin, async (req, res) => {
+  const { username, nombre, password, role } = req.body || {};
+  if (!username || !password) return res.status(400).json({ error: "Usuario y contraseña son obligatorios" });
+  if (!ROLES.includes(role)) return res.status(400).json({ error: "Rol inválido" });
+  if (await usuarios().findOne({ _id: username })) return res.status(409).json({ error: "Ya existe un usuario con ese nombre" });
+  await usuarios().insertOne({ _id: username, nombre: nombre || "", role, passwordHash: hashPassword(password), mustChangePassword: true, creado: new Date().toISOString() });
+  res.status(201).json({ ok: true });
+});
+app.put("/api/usuarios/:username", requireAdmin, async (req, res) => {
+  const u = await usuarios().findOne({ _id: req.params.username });
+  if (!u) return res.status(404).json({ error: "No existe" });
+  const { nombre, role, password } = req.body || {};
+  const set = {};
+  if (nombre !== undefined) set.nombre = nombre;
+  if (password) { set.passwordHash = hashPassword(password); set.mustChangePassword = true; }
+  if (role !== undefined) {
+    if (!ROLES.includes(role)) return res.status(400).json({ error: "Rol inválido" });
+    if (u.role === "architect_lead" && role !== "architect_lead" && await usuarios().countDocuments({ role: "architect_lead" }) <= 1)
+      return res.status(409).json({ error: "Debe quedar al menos un Architect Lead" });
+    set.role = role;
+  }
+  await usuarios().updateOne({ _id: req.params.username }, { $set: set });
+  res.json({ ok: true });
+});
+app.delete("/api/usuarios/:username", requireAdmin, async (req, res) => {
+  if (req.params.username === req.user.username) return res.status(409).json({ error: "No podés eliminar tu propio usuario" });
+  const u = await usuarios().findOne({ _id: req.params.username });
+  if (!u) return res.status(404).json({ error: "No existe" });
+  if (u.role === "architect_lead" && await usuarios().countDocuments({ role: "architect_lead" }) <= 1)
+    return res.status(409).json({ error: "Debe quedar al menos un Architect Lead" });
+  await usuarios().deleteOne({ _id: req.params.username });
+  res.json({ ok: true });
+});
+
 // ---------- configuración ----------
 app.get("/api/config", async (req, res) => res.json(await getConfig()));
-app.put("/api/config", async (req, res) => {
+app.put("/api/config", requireAdmin, async (req, res) => {
   const c = req.body;
   if (!c || !c.secciones_adr || !c.secciones_rfc) return res.status(400).json({ error: "Configuración inválida" });
   await config().updateOne({ clave: "catalogos" }, { $set: { valor: c } }, { upsert: true });
@@ -68,10 +194,42 @@ app.post("/api/documentos", async (req, res) => {
   const id = await nextId(tipo);
   const hoy = new Date().toISOString().slice(0, 10);
   const esqueleto = { id, tipo, titulo: "", estado: "borrador", autores: [], fecha_creacion: hoy, version: "0.1",
-    historial: [{ version: "0.1", fecha: hoy, autor: "dadm", cambio: "Creación del documento" }],
+    historial: [{ version: "0.1", fecha: hoy, autor: req.user.nombre || req.user.username, cambio: "Creación del documento" }],
     cuerpo: [] };
   await documentos().insertOne({ _id: id, tipo, ...esqueleto, creado: hoy, actualizado: hoy });
   res.status(201).json(esqueleto);
+});
+
+// importar un .docx existente como borrador editable (best-effort)
+app.post("/api/importar", async (req, res) => {
+  const { tipo, data } = req.body || {};
+  if (!["adr", "rfc"].includes(tipo)) return res.status(400).json({ error: "tipo debe ser adr o rfc" });
+  if (!data) return res.status(400).json({ error: "Falta 'data' (.docx en base64)" });
+  const base64 = data.includes(",") ? data.split(",")[1] : data;
+  const buffer = Buffer.from(base64, "base64");
+  try {
+    const cfg = await getConfig();
+    // persiste cada imagen embebida que sea PNG/JPG; ignora formatos no soportados (EMF/WMF)
+    const onImage = async (b64) => {
+      const buf = Buffer.from(b64, "base64");
+      const mime = tipoImagen(buf);
+      if (!mime) return null;
+      const imgId = crypto.randomUUID();
+      await imagenes().insertOne({ _id: imgId, data: new Binary(buf), mime, creado: new Date().toISOString() });
+      return imgId;
+    };
+    const { titulo, cuerpo } = await importarDocx(buffer, tipo, cfg, onImage);
+    const id = await nextId(tipo);
+    const hoy = new Date().toISOString().slice(0, 10);
+    const docu = { id, tipo, titulo: titulo || "", estado: "borrador", autores: [], fecha_creacion: hoy, version: "0.1",
+      historial: [{ version: "0.1", fecha: hoy, autor: req.user.nombre || req.user.username, cambio: "Importado desde .docx" }],
+      cuerpo };
+    await documentos().insertOne({ _id: id, ...docu, creado: hoy, actualizado: hoy });
+    res.status(201).json({ id });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "No se pudo importar el .docx", detalle: e.message });
+  }
 });
 
 app.get("/api/documentos/:id", async (req, res) => {
@@ -115,12 +273,22 @@ app.put("/api/documentos/:id", async (req, res) => {
   res.json({ ok: true, fecha_actualizacion: docu.fecha_actualizacion });
 });
 
-app.delete("/api/documentos/:id", async (req, res) => {
-  const row = await documentos().findOne({ _id: req.params.id }, { projection: { estado: 1 } });
+// ids de imágenes referenciadas por un documento (bloques tipo "imagen")
+function idsImagenes(docu) {
+  const ids = [];
+  const rec = bs => (bs || []).forEach(b => { if (b.tipo === "imagen" && b.recurso) ids.push(b.recurso); });
+  (docu.cuerpo || []).forEach(s => { rec(s.bloques); (s.subsecciones || []).forEach(u => rec(u.bloques)); });
+  return ids;
+}
+
+app.delete("/api/documentos/:id", requireAdmin, async (req, res) => {
+  const row = await documentos().findOne({ _id: req.params.id });
   if (!row) return res.status(404).json({ error: "No existe" });
   if (row.estado !== "borrador") return res.status(409).json({ error: "Solo se pueden eliminar borradores" });
+  const ids = idsImagenes(row);
+  if (ids.length) await imagenes().deleteMany({ _id: { $in: ids } }); // cascada: borra sus imágenes
   await documentos().deleteOne({ _id: req.params.id });
-  res.json({ ok: true });
+  res.json({ ok: true, imagenesEliminadas: ids.length });
 });
 
 // ---------- imágenes (subidas como PNG/JPG, referenciadas desde bloques tipo "imagen") ----------
@@ -155,6 +323,18 @@ app.delete("/api/imagenes/:id", async (req, res) => {
   res.json({ ok: true });
 });
 
+// GC de imágenes huérfanas: no referenciadas por ningún documento y con >1 h de antigüedad
+app.post("/api/imagenes/gc", requireAdmin, async (req, res) => {
+  const docs = await documentos().find({}, { projection: { cuerpo: 1 } }).toArray();
+  const usadas = new Set();
+  docs.forEach(d => idsImagenes(d).forEach(id => usadas.add(id)));
+  const hace1h = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const huerfanas = await imagenes().find({ _id: { $nin: [...usadas] }, creado: { $lt: hace1h } }, { projection: { _id: 1 } }).toArray();
+  const ids = huerfanas.map(x => x._id);
+  if (ids.length) await imagenes().deleteMany({ _id: { $in: ids } });
+  res.json({ eliminadas: ids.length });
+});
+
 // ---------- export Word ----------
 // Adjunta el binario de cada imagen referenciada (bloque tipo "imagen") para que el .docx la embeba como imagen real.
 async function adjuntarImagenes(docu) {
@@ -185,5 +365,6 @@ app.get("/api/documentos/:id/export.docx", async (req, res) => {
 
 conectarMongo()
   .then(seedConfig)
-  .then(() => app.listen(PORT, () => console.log(`DADM v1.0.0 escuchando en http://localhost:${PORT}`)))
+  .then(seedAdmin)
+  .then(() => { avisarSeguridad(); app.listen(PORT, () => console.log(`DADM v1.0.0 escuchando en http://localhost:${PORT}`)); })
   .catch(err => { console.error("No se pudo conectar a MongoDB:", err.message); process.exit(1); });

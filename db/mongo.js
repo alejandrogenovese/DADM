@@ -5,7 +5,7 @@ const { MongoClient } = require("mongodb");
 const MONGO_URI = process.env.MONGO_URI || "mongodb://admin:admin@localhost:27017/?authSource=admin";
 const MONGO_DB = process.env.MONGO_DB || "DADM";
 
-const COL = { documentos: "documents", config: "config", imagenes: "imagenes" };
+const COL = { documentos: "documents", config: "config", imagenes: "imagenes", usuarios: "users" };
 
 let client;
 let db;
@@ -27,5 +27,7 @@ async function conectarMongo() {
 const documentos = () => db.collection(COL.documentos);
 const config = () => db.collection(COL.config);
 const imagenes = () => db.collection(COL.imagenes);
+const usuarios = () => db.collection(COL.usuarios);
+const pingMongo = () => db.command({ ping: 1 });
 
-module.exports = { conectarMongo, documentos, config, imagenes };
+module.exports = { conectarMongo, documentos, config, imagenes, usuarios, pingMongo };
