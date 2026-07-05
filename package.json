@@ -1,6 +1,6 @@
 {
   "name": "dadm",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Data Architect Document Manager — Arquitectura Data, Banco Galicia",
   "main": "server.js",
   "scripts": {

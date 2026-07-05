@@ -25,37 +25,6 @@ function matchSeccion(titulo, tipo, catalogos) {
   return found ? { codigo: found.codigo, titulo: found.etiqueta } : { codigo: "custom", titulo: limpiarTitulo(titulo) };
 }
 
-// ---- saneo: garantiza secciones/bloques bien formados (defensa contra HTML raro de Word) ----
-const S = v => (v == null ? "" : String(v));
-function sanearBloque(b) {
-  if (!b || typeof b !== "object") return null;
-  if (b.tipo === "texto") return { tipo: "texto", contenido: S(b.contenido) };
-  if (b.tipo === "imagen") return { tipo: "imagen", recurso: S(b.recurso), epigrafe: S(b.epigrafe) };
-  if (b.tipo === "tabla_libre") {
-    let enc = Array.isArray(b.encabezados) ? b.encabezados.map(S) : [];
-    if (!enc.length) enc = ["Columna 1"];
-    const filas = (Array.isArray(b.filas) ? b.filas : []).map(f => {
-      const r = (Array.isArray(f) ? f : []).map(S);
-      while (r.length < enc.length) r.push("");
-      return r.slice(0, enc.length);
-    });
-    return { tipo: "tabla_libre", encabezados: enc, filas: filas.length ? filas : [new Array(enc.length).fill("")] };
-  }
-  return null; // tipo desconocido: se descarta
-}
-function sanearSecciones(cuerpo, tipo, catalogos) {
-  const secs = tipo === "adr" ? catalogos.secciones_adr : catalogos.secciones_rfc;
-  const permitidos = new Set(secs.map(s => s.codigo).concat("custom", "anexo"));
-  const conBloques = arr => { const b = (arr || []).map(sanearBloque).filter(Boolean); return b.length ? b : [{ tipo: "texto", contenido: "" }]; };
-  return (cuerpo || []).map(s => {
-    const codigo = permitidos.has(s.codigo) ? s.codigo : "custom";
-    const out = { codigo, titulo: S(s.titulo) || codigo, bloques: conBloques(s.bloques) };
-    if (Array.isArray(s.subsecciones) && s.subsecciones.length)
-      out.subsecciones = s.subsecciones.map(u => ({ titulo: S(u.titulo) || "Subsección", bloques: conBloques(u.bloques) }));
-    return out;
-  });
-}
-
 function tablaLibre(tableEl) {
   const rows = tableEl.querySelectorAll("tr");
   if (!rows.length) return null;
