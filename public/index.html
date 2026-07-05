@@ -161,6 +161,18 @@
   .link-btn{font:400 12px var(--sans); color:var(--muted); background:none; border:0; cursor:pointer; padding:2px 0}
   .link-btn:hover{color:var(--ink)}
 
+  /* texto enriquecido */
+  .btx code,.tbl code{font:400 0.92em var(--mono); background:oklch(0.94 0.006 60); padding:1px 4px; border-radius:3px}
+  .btx.codigo code,.btx.callout code{background:oklch(1 0 0/0.18)}
+
+  /* barra flotante de formato */
+  .fmtbar{position:absolute; z-index:150; display:flex; align-items:center; gap:2px; padding:4px; background:oklch(0.15 0.010 30); border-radius:8px; box-shadow:0 6px 20px -6px oklch(0 0 0/0.5)}
+  .fmtbar button{display:flex; align-items:center; justify-content:center; min-width:28px; height:28px; padding:0 6px; border:0; background:transparent; color:oklch(0.92 0.006 60); border-radius:5px; cursor:pointer; font:500 13px var(--sans)}
+  .fmtbar button:hover{background:oklch(0.28 0.011 30)}
+  .fmtbar .sep{width:1px; height:18px; background:oklch(0.32 0.011 30); margin:0 3px}
+  .fmtbar select{height:28px; border:0; border-radius:5px; background:oklch(0.22 0.011 30); color:oklch(0.92 0.006 60); font:500 12px var(--sans); padding:0 4px; cursor:pointer}
+  .fmtbar select:focus{outline:1px solid var(--orange)}
+
   /* menú flotante */
   .menu{position:absolute; background:#fff; border:1px solid var(--border); border-radius:8px; box-shadow:0 8px 24px -8px oklch(0 0 0/0.18); padding:6px; z-index:100; min-width:260px; max-height:60vh; overflow:auto}
   .menu button{display:block; width:100%; text-align:left; border:0; background:transparent; padding:7px 10px; border-radius:6px; cursor:pointer; font:400 13px var(--sans); color:var(--ink)}
@@ -264,7 +276,7 @@
       <button class="u-logout" onclick="abrirCambioPassword(false)" title="Cambiar contraseña">🔑</button>
       <button class="u-logout" onclick="logout()" title="Cerrar sesión">Salir</button>
     </div>
-    <div class="side-foot">DADM v1.0.0 · Banco Galicia</div>
+    <div class="side-foot">DADM v1.2.1 · Banco Galicia</div>
   </aside>
 
   <div class="main">
@@ -341,6 +353,34 @@
   <div class="dlg-pie"><button class="btn-primary" onclick="cambiarPassword()">Guardar contraseña</button></div>
 </dialog>
 
+<div id="fmtbar" class="fmtbar oculto" role="toolbar" aria-label="Formato de texto">
+  <button type="button" title="Negrita (Ctrl+B)" aria-label="Negrita" onmousedown="event.preventDefault()" onclick="fmtCmd('bold')"><b>B</b></button>
+  <button type="button" title="Itálica (Ctrl+I)" aria-label="Itálica" onmousedown="event.preventDefault()" onclick="fmtCmd('italic')"><i>I</i></button>
+  <button type="button" title="Subrayado (Ctrl+U)" aria-label="Subrayado" onmousedown="event.preventDefault()" onclick="fmtCmd('underline')"><u>U</u></button>
+  <button type="button" title="Tachado" aria-label="Tachado" onmousedown="event.preventDefault()" onclick="fmtCmd('strikeThrough')"><s>S</s></button>
+  <button type="button" title="Código inline" aria-label="Código inline" onmousedown="event.preventDefault()" onclick="fmtCmd('code')" style="font-family:var(--mono);font-size:12px">&lt;/&gt;</button>
+  <span class="sep"></span>
+  <select id="fmt-font" title="Tipografía" aria-label="Tipografía" onchange="fmtCmd('fontName',this.value); this.selectedIndex=0">
+    <option value="">Fuente</option>
+    <option value="IBM Plex Sans">IBM Plex Sans</option>
+    <option value="Arial">Arial</option>
+    <option value="Calibri">Calibri</option>
+    <option value="Times New Roman">Times New Roman</option>
+    <option value="Georgia">Georgia</option>
+    <option value="Consolas">Consolas (mono)</option>
+  </select>
+  <select id="fmt-size" title="Tamaño" aria-label="Tamaño" onchange="fmtCmd('fontSize',this.value); this.selectedIndex=0">
+    <option value="">Tamaño</option>
+    <option value="2">Chico</option>
+    <option value="3">Normal</option>
+    <option value="4">Grande</option>
+    <option value="5">Muy grande</option>
+    <option value="6">Título</option>
+  </select>
+  <span class="sep"></span>
+  <button type="button" title="Quitar formato" aria-label="Quitar formato" onmousedown="event.preventDefault()" onclick="fmtCmd('removeFormat')">✕</button>
+</div>
+
 <div id="vista" class="oculto"></div>
 
 <script>
@@ -354,6 +394,50 @@ const hoy = () => new Date().toISOString().slice(0,10);
 const esc  = s => (s||"").replaceAll("&","&amp;").replaceAll("<","&lt;");
 const escA = s => (s||"").replaceAll("&","&amp;").replaceAll('"','&quot;');
 const escJs = s => (s||"").replaceAll("'", String.raw`\'`);
+
+// ---------- texto enriquecido (HTML inline seguro) ----------
+// El contenido de bloques de texto, callouts y celdas se guarda como HTML inline.
+// Se sanitiza SIEMPRE al mostrar (defensa contra XSS de contenido malicioso guardado).
+const looksHtml = s => /<\/?[a-z][\s\S]*>/i.test(s||"") || /&(amp|lt|gt|quot|#\d+);/.test(s||"");
+const RICH_TAGS = { B:[], STRONG:[], I:[], EM:[], U:[], S:[], STRIKE:[], DEL:[], CODE:[], BR:[], DIV:[], P:[], FONT:["face","size"], SPAN:["style"] };
+function filterStyle(s){
+  return (s||"").split(";").map(d=>{
+    const i = d.indexOf(":"); if(i<0) return "";
+    const k = d.slice(0,i).trim().toLowerCase(), v = d.slice(i+1).trim();
+    if((k==="font-family"||k==="font-size") && v && !/url|expression|javascript/i.test(v)) return k+":"+v;
+    return "";
+  }).filter(Boolean).join(";");
+}
+function limpiarNodo(node){
+  [...node.childNodes].forEach(ch=>{
+    if(ch.nodeType===8){ ch.remove(); return; }      // comentarios
+    if(ch.nodeType!==1) return;                       // texto: se conserva
+    const permitidos = RICH_TAGS[ch.tagName];
+    if(permitidos){
+      [...ch.attributes].forEach(a=>{ if(!permitidos.includes(a.name)) ch.removeAttribute(a.name); });
+      if(ch.tagName==="SPAN"){ const st=filterStyle(ch.getAttribute("style")); if(st) ch.setAttribute("style",st); else ch.removeAttribute("style"); }
+      limpiarNodo(ch);
+    } else {                                          // tag no permitido: limpiar subárbol y desenvolver (conserva el texto)
+      limpiarNodo(ch);
+      const parent = ch.parentNode;
+      while(ch.firstChild) parent.insertBefore(ch.firstChild, ch);
+      parent.removeChild(ch);
+    }
+  });
+}
+function sanitizeHtml(html){
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html||"";
+  limpiarNodo(tmp);
+  return tmp.innerHTML;
+}
+// para mostrar dentro de contenteditable: HTML sanitizado si trae formato, texto escapado si es legado
+const richOut = c => looksHtml(c) ? sanitizeHtml(c) : esc(c);
+// lee y sanitiza lo editado; "" si quedó sin texto
+function cleanHtml(el){
+  const h = sanitizeHtml(el.innerHTML);
+  return el.textContent.trim() ? h : "";
+}
 const api = async (metodo, ruta, body) => {
   const r = await fetch(ruta, { method: metodo, headers: {"Content-Type":"application/json"}, body: body ? JSON.stringify(body) : undefined });
   if(!r.ok){
@@ -456,6 +540,7 @@ let dirty = false; // hay cambios sin guardar en el editor
 const esAdmin = () => USUARIO && USUARIO.role === "architect_lead";
 
 async function init(){
+  try{ document.execCommand("styleWithCSS", false, false); }catch{ /* execCommand: formato con tags (b/i/u/font) */ }
   try{ USUARIO = await api("GET","/api/me"); }
   catch(e){ console.warn(e); return mostrarLogin(); }
   CATALOGOS = await api("GET","/api/config");
@@ -871,7 +956,7 @@ function renderBloque(b,expr,bi,ph){
   const B = `${expr}[${bi}]`;
   const quitar = `<button class="quitar" onclick="${expr}.splice(${bi},1); dirty=true; renderDoc()" title="Quitar bloque">✕</button>`;
   if(b.tipo==="texto"){
-    return `<div class="bloque">${quitar}<div class="btx" contenteditable="true" data-ph="${escA(ph||'Escribí acá…')}" oninput="${B}.contenido=this.innerText">${esc(b.contenido)}</div></div>`;
+    return `<div class="bloque">${quitar}<div class="btx rich" contenteditable="true" data-ph="${escA(ph||'Escribí acá…')}" oninput="${B}.contenido=cleanHtml(this)">${richOut(b.contenido)}</div></div>`;
   }
   if(b.tipo==="callout"){
     const est = b.estilo||"info";
@@ -881,7 +966,7 @@ function renderBloque(b,expr,bi,ph){
       const style = k===est ? `background:${c.bar};color:#fff` : `background:#fff;color:${c.fg}`;
       return `<button class="pill" style="border-color:${c.bar};${style}" onclick="setEstilo('${expr}',${bi},'${k}')">${c.label}</button>`;
     }).join("");
-    return `<div class="bloque">${quitar}<div class="pills">${pills}</div><div class="btx callout" contenteditable="true" style="background:${cs.bg};color:${cs.fg};border-left:4px solid ${cs.bar}" data-ph="Decisión / advertencia / cita destacada…" oninput="${B}.contenido=this.innerText">${esc(b.contenido)}</div></div>`;
+    return `<div class="bloque">${quitar}<div class="pills">${pills}</div><div class="btx callout rich" contenteditable="true" style="background:${cs.bg};color:${cs.fg};border-left:4px solid ${cs.bar}" data-ph="Decisión / advertencia / cita destacada…" oninput="${B}.contenido=cleanHtml(this)">${richOut(b.contenido)}</div></div>`;
   }
   if(b.tipo==="codigo"){
     return `<div class="bloque">${quitar}<div class="btx codigo" contenteditable="true" data-ph="-- SQL / YAML / código" oninput="${B}.contenido=this.innerText">${esc(b.contenido)}</div></div>`;
@@ -915,7 +1000,7 @@ function renderBloque(b,expr,bi,ph){
     b.filas.forEach((f,fi)=>{
       t += `<tr>`;
       f.forEach((c,ci)=>{
-        t += `<td contenteditable="true" oninput="${B}.filas[${fi}][${ci}]=this.innerText">${esc(c)}</td>`;
+        t += `<td class="rich" contenteditable="true" oninput="${B}.filas[${fi}][${ci}]=cleanHtml(this)">${richOut(c)}</td>`;
       });
       t += `</tr>`;
     });
@@ -928,8 +1013,12 @@ function renderBloque(b,expr,bi,ph){
   return "";
 }
 function resolvePath(expr){
+  // Todos los expr del editor arrancan en "doc" (ej: "doc.cuerpo[0].bloques").
+  // Se enraíza en el propio `doc` porque, al ser `let` de nivel de script, NO es
+  // propiedad de globalThis: enraizar ahí devolvía undefined y agregarBloque /
+  // subirImagen / setEstilo quedaban sin efecto (bug: no se podían agregar bloques).
   const parts = expr.split(/[.[\]]/).filter(Boolean);
-  let obj = globalThis;
+  let obj = { doc };
   for(const part of parts){
     obj = /^\d+$/.test(part) ? obj?.[Number(part)] : obj?.[part];
     if(obj == null) break;
@@ -941,6 +1030,52 @@ function setEstilo(expr,bi,k){
   if(Array.isArray(arr) && arr[bi]) arr[bi].estilo = k;
   dirty = true;
   renderDoc();
+}
+
+// ================= barra de formato (texto enriquecido) =================
+let savedRange = null, activeEditable = null;
+const fmtbar = () => document.getElementById("fmtbar");
+function hideFmtbar(){ fmtbar().classList.add("oculto"); }
+function posFmtbar(rect){
+  const bar = fmtbar();
+  bar.classList.remove("oculto");
+  const bw = bar.offsetWidth, bh = bar.offsetHeight;
+  const left = Math.min(Math.max(8, rect.left + rect.width/2 - bw/2 + scrollX), innerWidth - bw - 8);
+  let top = rect.top + scrollY - bh - 8;
+  if(top < scrollY + 4) top = rect.bottom + scrollY + 8; // sin lugar arriba → debajo
+  bar.style.left = left + "px";
+  bar.style.top = top + "px";
+}
+function onSelChange(){
+  if(fmtbar().contains(document.activeElement)) return; // interactuando con la barra (ej: dropdown)
+  const sel = window.getSelection();
+  if(!sel || sel.rangeCount===0 || sel.isCollapsed){ hideFmtbar(); return; }
+  const anchor = sel.anchorNode;
+  const el = anchor && (anchor.nodeType===1 ? anchor : anchor.parentElement);
+  const rich = el && el.closest && el.closest(".rich");
+  if(!rich){ hideFmtbar(); return; }
+  activeEditable = rich;
+  savedRange = sel.getRangeAt(0).cloneRange();
+  posFmtbar(sel.getRangeAt(0).getBoundingClientRect());
+}
+document.addEventListener("selectionchange", onSelChange);
+function restoreSelection(){
+  if(!savedRange || !activeEditable) return false;
+  activeEditable.focus();
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(savedRange);
+  return true;
+}
+function fmtCmd(cmd, val){
+  if(!restoreSelection()) return;
+  if(cmd==="code"){
+    const txt = window.getSelection().toString();
+    if(txt) document.execCommand("insertHTML", false, "<code>"+txt.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")+"</code>");
+  } else {
+    document.execCommand(cmd, false, val);
+  }
+  if(activeEditable) activeEditable.dispatchEvent(new Event("input", { bubbles:true }));
 }
 
 function agregarSubseccion(si){
@@ -1336,13 +1471,14 @@ function copiarJson(){ navigator.clipboard.writeText(document.getElementById("js
 
 // ================= vista documento / export =================
 function vTexto(contenido){
+  if(looksHtml(contenido)) return sanitizeHtml(contenido);
   let h = "";
   (contenido||"").split(/\n\n/).forEach(parr=>{
     const lineas = parr.split("\n");
     let buf = [], enLista = false;
     lineas.forEach(l=>{
       if(l.trimStart().startsWith("• ")){
-        if(buf.length){ h += `<p>${esc(buf.join(" "))}</p>`; buf = []; }
+        if(buf.length){ h += `<p>${buf.map(esc).join("<br>")}</p>`; buf = []; }
         if(!enLista){ h += "<ul>"; enLista = true; }
         h += `<li>${esc(l.trimStart().slice(2))}</li>`;
       } else {
@@ -1351,7 +1487,7 @@ function vTexto(contenido){
       }
     });
     if(enLista) h += "</ul>";
-    if(buf.length) h += `<p>${esc(buf.join(" "))}</p>`;
+    if(buf.length) h += `<p>${buf.map(esc).join("<br>")}</p>`;
   });
   return h;
 }
@@ -1361,7 +1497,7 @@ function vBloque(b){
   }
   if(b.tipo==="callout"){
     const prefix = b.estilo==="decision" ? "<b>DECISIÓN / </b>" : "";
-    return `<div class="callout-v co-${b.estilo||"info"}">${prefix}${esc(b.contenido)}</div>`;
+    return `<div class="callout-v co-${b.estilo||"info"}">${prefix}${richOut(b.contenido)}</div>`;
   }
   if(b.tipo==="codigo"){
     return `<div class="codigo-v">${esc(b.contenido)}</div>`;
@@ -1383,7 +1519,7 @@ function vBloque(b){
     t += "</tr>";
     b.filas.forEach(f => {
       t += "<tr>";
-      f.forEach(c => { t += `<td>${esc(c)}</td>`; });
+      f.forEach(c => { t += `<td>${richOut(c)}</td>`; });
       t += "</tr>";
     });
     return t + "</table>";
@@ -1438,6 +1574,11 @@ function buildVistaMetadataTable(esAdr){
   rows += filaVista('Fecha de creación · Versión', doc.fecha_creacion+' · v'+doc.version);
   if(doc.tags) rows += filaVista('Tags', doc.tags);
   return '<table>' + rows + '</table>';
+}
+// filas de la tabla de Aprobación (ADR): un decisor por fila, estado inicial "Pendiente"
+function decisionRows(){
+  return (doc.decisores||"").split("·").map(x=>x.trim()).filter(Boolean)
+    .map(d=>`<tr><td>${esc(d)}</td><td>Pendiente</td><td></td></tr>`).join("");
 }
 function buildVistaSections(esAdr){
   let h = '';

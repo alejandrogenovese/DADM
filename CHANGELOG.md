@@ -4,6 +4,38 @@ Todas las modificaciones relevantes de DADM se documentan en este archivo.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/)
 y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [1.2.1] — 2026-07-05
+
+Endurecimiento del backend: manejo de errores robusto y creación de documentos a prueba de concurrencia.
+
+### Fixed
+- **Requests colgadas ante errores del backend**: los handlers `async` sin `try/catch` dejaban la request sin responder cuando MongoDB fallaba (Express 4 no captura los rechazos de promesa). Se agregó un envoltorio (`asyncSafe`) que deriva cualquier rechazo a un **manejador de errores global**, devolviendo 500 (o el código 4xx correspondiente) en lugar de colgarse.
+- **Colisión de IDs en creación concurrente**: dos creaciones simultáneas podían calcular el mismo correlativo y chocar. La creación de documentos (`POST /api/documentos` y `POST /api/importar`) ahora **reintenta ante colisión** recalculando el ID.
+
+## [1.2.0] — 2026-07-05
+
+Documentación de la API con Swagger y edición de texto enriquecido en el editor,
+más correcciones de regresiones en bloques, tablas y export.
+
+### Added
+- **Texto enriquecido** en bloques de texto, callouts y celdas de tabla: negrita, itálica, subrayado, tachado, código inline, tipografía y tamaño, mediante una barra flotante al seleccionar texto. El formato viaja al Word (.docx) y a la vista imprimible. El contenido se guarda como HTML inline y se **sanitiza siempre al mostrarlo** (whitelist de tags/atributos) para evitar XSS.
+- **Documentación de la API (Swagger / OpenAPI 3)**: UI navegable en `/api-docs` y especificación cruda en `/api-docs.json` (`openapi.js`). Pública, con esquema de autenticación por cookie de sesión.
+
+### Fixed
+- **Bloques/tablas no se podían volver a agregar**: `agregarBloque` / `subirImagen` / `setEstilo` quedaban sin efecto porque `resolvePath` se enraizaba en `globalThis` (donde `doc` no existe). Regresión introducida al reemplazar `eval` por Sonar.
+- **Vista previa y export de ADR rotos**: `abrirVista()` llamaba a `decisionRows()`, una función que un refactor había borrado sin querer, lanzando `ReferenceError` antes de renderizar (y bloqueando el botón de descarga de Word).
+- **Saltos de línea colapsados en el Word y la vista previa**: cada línea del editor (separada por `\n` simple) se unía con espacios en un solo párrafo. Ahora cada línea visible es un salto real y la línea en blanco separa párrafos, alineado con lo que muestra el editor.
+
+## [1.1.0] — 2026-07-05
+
+### Added
+- **Autenticación con usuarios y roles** (`architect` / `architect_lead`): sesión por cookie firmada (HMAC), contraseñas con hash `scrypt`, rate-limit de login y cambio de contraseña forzado en el primer ingreso (`auth.js`).
+- **Gestión de usuarios** reservada al rol Architect Lead (alta, edición de rol, reseteo de contraseña y baja), con la garantía de que siempre quede al menos un Architect Lead.
+- **Importación de `.docx`** existentes como borrador editable (best-effort, vía `mammoth`), incluyendo imágenes embebidas soportadas (PNG/JPG) (`importer.js`).
+
+### Security
+- Toda la API queda detrás de sesión salvo `/api/health`, `/api/login` y `/api/logout`. `AUTH_SECRET` firma el token de sesión.
+
 ## [1.0.0] — 2026-07-05
 
 Primera versión estable de DADM. Editor de ADR/RFC con formato oficial,
@@ -34,4 +66,7 @@ persistencia centralizada en MongoDB y export a Word server-side.
 ### Security
 - Credenciales y datos sensibles movidos a `.env` (excluido del control de versiones).
 
+[1.2.1]: https://github.com/alejandrogenovese/DADM/releases/tag/v1.2.1
+[1.2.0]: https://github.com/alejandrogenovese/DADM/releases/tag/v1.2.0
+[1.1.0]: https://github.com/alejandrogenovese/DADM/releases/tag/v1.1.0
 [1.0.0]: https://github.com/alejandrogenovese/DADM/releases/tag/v1.0.0

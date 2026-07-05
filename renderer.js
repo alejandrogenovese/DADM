@@ -5,6 +5,109 @@ const {
   Header, Footer, AlignmentType, LevelFormat, HeadingLevel, BorderStyle,
   WidthType, ShadingType, PageNumber, ImageRun,
 } = require("docx");
+const { parse } = require("node-html-parser");
+
+// ---------- texto enriquecido: HTML inline → runs docx ----------
+// El editor guarda el contenido de bloques de texto, callouts y celdas como HTML
+// inline (negrita/itálica/subrayado/tachado/código/fuente/tamaño). Acá se parsea a
+// runs. El contenido "plano" (histórico, sin tags) sigue el camino legado.
+const looksHtml = s => /<\/?[a-z][\s\S]*>/i.test(s || "") || /&(amp|lt|gt|quot|#\d+);/.test(s || "");
+const stripTags = s => String(s == null ? "" : s).replace(/<[^>]*>/g, "");
+
+const FONT_SIZE_HALFPT = { 1: 16, 2: 20, 3: 22, 4: 26, 5: 32, 6: 40, 7: 56 };
+const fontSizeAHalfPt = v => FONT_SIZE_HALFPT[parseInt(v, 10)] || 22;
+const cssSizeAHalfPt = (n, unit) => Math.round((unit === "pt" ? n : n * 0.75) * 2);
+
+function aplicarFmt(fmt, tag, el) {
+  const f = { ...fmt };
+  if (tag === "b" || tag === "strong") f.bold = true;
+  else if (tag === "i" || tag === "em") f.italics = true;
+  else if (tag === "u") f.underline = {};
+  else if (tag === "s" || tag === "strike" || tag === "del") f.strike = true;
+  else if (tag === "code") f.font = "Consolas";
+  else if (tag === "font") {
+    const face = el.getAttribute("face"); if (face) f.font = face.split(",")[0].replace(/["']/g, "").trim();
+    const size = el.getAttribute("size"); if (size) f.size = fontSizeAHalfPt(size);
+  } else if (tag === "span") {
+    const style = el.getAttribute("style") || "";
+    const fam = style.match(/font-family:\s*([^;]+)/i); if (fam) f.font = fam[1].split(",")[0].replace(/["']/g, "").trim();
+    const fs = style.match(/font-size:\s*([\d.]+)\s*(px|pt)?/i); if (fs) f.size = cssSizeAHalfPt(parseFloat(fs[1]), fs[2]);
+  }
+  return f;
+}
+
+// Devuelve "líneas" (separadas por div/p/br); cada línea es un array de runs {text, ...fmt}.
+// Un <br> fuerza una línea (incluso vacía); div/p abren/cierran línea solo si hay contenido,
+// para no generar líneas vacías fantasma entre bloques consecutivos.
+function htmlALineas(html, baseFmt = {}) {
+  const root = parse(html || "");
+  const lineas = [];
+  let cur = [];
+  const endLine = () => { lineas.push(cur); cur = []; };
+  const walk = (node, fmt) => {
+    node.childNodes.forEach(ch => {
+      if (ch.nodeType === 3) { const txt = ch.text; if (txt) cur.push({ ...fmt, text: txt }); }
+      else if (ch.nodeType === 1) {
+        const tag = (ch.rawTagName || "").toLowerCase();
+        if (tag === "br") { endLine(); return; }
+        if (tag === "div" || tag === "p") { if (cur.length) endLine(); walk(ch, fmt); if (cur.length) endLine(); return; }
+        walk(ch, aplicarFmt(fmt, tag, ch));
+      }
+    });
+  };
+  walk(root, baseFmt);
+  if (cur.length) endLine();
+  return lineas;
+}
+
+// Modelo unificado de líneas para bloques de texto: {bullet, runs}. Línea vacía = runs:[].
+function lineasDeHtml(contenido) {
+  return htmlALineas(contenido).map(runs => {
+    const full = runs.map(r => r.text).join("");
+    if (full.trimStart().startsWith("• ")) return { bullet: true, runs: quitarVinieta(runs) };
+    return { bullet: false, runs };
+  });
+}
+function lineasDePlano(contenido) {
+  return contenido.split("\n").map(l => {
+    const trimmed = l.trimStart();
+    if (trimmed.startsWith("• ")) return { bullet: true, runs: [{ text: trimmed.slice(2) }] };
+    if (!l.trim()) return { bullet: false, runs: [] };
+    return { bullet: false, runs: [{ text: l }] };
+  });
+}
+// Une líneas consecutivas en un párrafo con saltos de línea reales (WYSIWYG con el editor,
+// que muestra cada \n / <div> / <br> como salto). Línea vacía → separación de párrafo.
+function renderLineas(lineas, size) {
+  const output = [];
+  let grupo = [];
+  const flush = () => { if (grupo.length) { output.push(p(grupo, { spacing: { after: 120 } })); grupo = []; } };
+  lineas.forEach(linea => {
+    if (linea.bullet) {
+      flush();
+      output.push(new Paragraph({ numbering: { reference: "bullets", level: 0 },
+        children: linea.runs.map(r => t(r.text, runProps(r, size))), spacing: { after: 60 } }));
+    } else if (!linea.runs.length) {
+      flush(); // línea en blanco → cierra el párrafo
+    } else {
+      const saltoLinea = grupo.length > 0; // no es la primera línea del párrafo
+      linea.runs.forEach((r, i) => grupo.push(t(r.text, { ...runProps(r, size), ...(saltoLinea && i === 0 ? { break: 1 } : {}) })));
+    }
+  });
+  flush();
+  return output.length ? output : [vacio()];
+}
+
+function runProps(r, sizeDefault) {
+  const o = { size: r.size || sizeDefault };
+  if (r.bold) o.bold = true;
+  if (r.italics) o.italics = true;
+  if (r.underline) o.underline = {};
+  if (r.strike) o.strike = true;
+  if (r.font) o.font = r.font;
+  if (r.color) o.color = r.color;
+  return o;
+}
 
 // Dimensiones de una imagen PNG (chunk IHDR) o JPEG (marcador SOF).
 function dimensionesImagen(buf, mime) {
@@ -39,28 +142,15 @@ function caja(children, fill) {
       shading: { fill, type: ShadingType.CLEAR }, children })] })],
   });
 }
+// quita el "• " inicial (viñeta) del primer run con texto
+function quitarVinieta(runs) {
+  const out = runs.map(r => ({ ...r }));
+  for (const r of out) { if (r.text) { r.text = r.text.replace(/^\s*•\s/, ""); break; } }
+  return out;
+}
 function bloqueTexto(contenido, size = 22) {
-  const output = [];
-  contenido.split(/\n\n/).forEach(parr => {
-    const lineas = parr.split("\n");
-    let buffer = [];
-    const flush = () => {
-      if (!buffer.length) return;
-      output.push(p([t(buffer.join(" "), { size })], { spacing: { after: 120 } }));
-      buffer = [];
-    };
-    lineas.forEach(l => {
-      if (l.trimStart().startsWith("• ")) {
-        flush();
-        output.push(new Paragraph({ numbering: { reference: "bullets", level: 0 },
-          children: [t(l.trimStart().slice(2), { size })], spacing: { after: 60 } }));
-      } else {
-        buffer.push(l);
-      }
-    });
-    flush();
-  });
-  return output;
+  const lineas = looksHtml(contenido) ? lineasDeHtml(contenido) : lineasDePlano(contenido);
+  return renderLineas(lineas, size);
 }
 function bloqueCallout(b) {
   const estilos = {
@@ -70,8 +160,26 @@ function bloqueCallout(b) {
     info:        { fill: AZUL_FILL, color: "1F4E79", pref: "" },
   };
   const e = estilos[b.estilo || "info"];
-  return [caja([p([t(e.pref, { bold: true, color: e.color, size: 20 }),
-    t(b.contenido, { color: e.color, size: 20, italics: b.estilo === "cita" })])], e.fill), vacio()];
+  const forceItalic = b.estilo === "cita";
+  const children = [t(e.pref, { bold: true, color: e.color, size: 20 })];
+  if (looksHtml(b.contenido)) {
+    htmlALineas(b.contenido, { size: 20 }).filter(l => l.length).forEach((runs, li) => runs.forEach((r, ri) =>
+      children.push(t(r.text, { ...runProps(r, 20), color: e.color, italics: r.italics || forceItalic, ...(li > 0 && ri === 0 ? { break: 1 } : {}) }))));
+  } else {
+    children.push(t(b.contenido, { color: e.color, size: 20, italics: forceItalic }));
+  }
+  return [caja([p(children)], e.fill), vacio()];
+}
+// contenido de una celda: runs enriquecidos si es HTML, texto plano si no
+function celdaChildren(val, size) {
+  const s = val == null ? "" : String(val);
+  if (!looksHtml(s)) return [p([t(s, { size })])];
+  const lineas = htmlALineas(s, { size }).filter(l => l.length);
+  if (!lineas.length) return [p([t("", { size })])];
+  const children = [];
+  lineas.forEach((runs, li) => runs.forEach((r, ri) =>
+    children.push(t(r.text, { ...runProps(r, size), ...(li > 0 && ri === 0 ? { break: 1 } : {}) }))));
+  return [new Paragraph({ children })];
 }
 function tablaDocx(cols, filas, headerFill = GRIS_FILL) {
   const widths = cols.map(() => Math.floor(CONTENT / cols.length));
@@ -82,10 +190,10 @@ function tablaDocx(cols, filas, headerFill = GRIS_FILL) {
       new TableRow({ tableHeader: true, children: cols.map((col, i) => new TableCell({
         borders, margins, width: { size: widths[i], type: WidthType.DXA },
         shading: { fill: headerFill, type: ShadingType.CLEAR },
-        children: [p([t(String(col), { bold: true, size: 18 })])] })) }),
+        children: [p([t(stripTags(col), { bold: true, size: 18 })])] })) }),
       ...filas.map(row => new TableRow({ children: row.map((cell, i) => new TableCell({
         borders, margins, width: { size: widths[i], type: WidthType.DXA },
-        children: [p([t(String(cell ?? ""), { size: 18 })])] })) })),
+        children: celdaChildren(cell, 18) })) })),
     ],
   });
 }

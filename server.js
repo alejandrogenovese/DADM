@@ -1,4 +1,4 @@
-// DADM v1.0.0 — Data Architect Document Manager
+// DADM v1.2.1 — Data Architect Document Manager
 // API: configuración (catálogo editable) + documentos + imágenes + export Word server-side.
 // Único almacenamiento: MongoDB (base DADM). No hay base local.
 const fs = require("fs");
@@ -11,8 +11,10 @@ const express = require("express");
 const crypto = require("crypto");
 const { Binary } = require("mongodb");
 const Ajv = require("ajv/dist/2020");
+const swaggerUi = require("swagger-ui-express");
 const { renderDocx } = require("./renderer");
 const { importarDocx } = require("./importer");
+const { openapi } = require("./openapi");
 const { conectarMongo, documentos, config, imagenes, usuarios, pingMongo } = require("./db/mongo");
 const { hashPassword, verifyPassword, signToken, verifyToken, parseCookies, TTL_S } = require("./auth");
 
@@ -53,8 +55,25 @@ function avisarSeguridad() {
 }
 
 const app = express();
+
+// Envuelve automáticamente los handlers async: un rechazo de promesa se deriva a next(err)
+// en vez de dejar la request colgada (Express 4 no lo hace solo). Se preservan los
+// error-handlers (arity 4) y los valores que no son función (arrays de middleware, etc.).
+const asyncSafe = fn => (typeof fn !== "function" || fn.length === 4)
+  ? fn
+  : (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+["get", "post", "put", "delete", "patch", "use"].forEach(m => {
+  const original = app[m].bind(app);
+  app[m] = (...args) => original(...args.map(asyncSafe));
+});
+
 app.use(express.json({ limit: "20mb" }));
 app.use(express.static(path.join(__dirname, "public")));
+
+// ---------- documentación de la API (Swagger / OpenAPI) ----------
+// Pública: montada antes de requireAuth. El JSON crudo queda en /api-docs.json.
+app.get("/api-docs.json", (req, res) => res.json(openapi));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openapi, { customSiteTitle: "DADM API" }));
 
 // ---------- autenticación ----------
 const cookieSesion = (token, maxAge) => `dadm_token=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${maxAge}`;
@@ -188,15 +207,33 @@ async function nextId(tipo) {
   return tipo === "adr" ? `ADR-${String(max + 1).padStart(3, "0")}` : `RFC-${String(max + 1).padStart(4, "0")}`;
 }
 
+// Inserta un documento nuevo con correlativo, reintentando ante colisión de _id
+// (dos creaciones simultáneas podrían calcular el mismo id): recomputa y reintenta.
+// `construir(id)` devuelve el documento a insertar (incluido `_id`). Devuelve el id asignado.
+async function crearDocumentoNuevo(tipo, construir) {
+  for (let intento = 0; ; intento++) {
+    const id = await nextId(tipo);
+    try {
+      await documentos().insertOne(construir(id));
+      return id;
+    } catch (e) {
+      if (e && e.code === 11000 && intento < 4) continue; // duplicate key → reintenta
+      throw e;
+    }
+  }
+}
+
 app.post("/api/documentos", async (req, res) => {
   const { tipo } = req.body;
   if (!["adr", "rfc"].includes(tipo)) return res.status(400).json({ error: "tipo debe ser adr o rfc" });
-  const id = await nextId(tipo);
   const hoy = new Date().toISOString().slice(0, 10);
-  const esqueleto = { id, tipo, titulo: "", estado: "borrador", autores: [], fecha_creacion: hoy, version: "0.1",
-    historial: [{ version: "0.1", fecha: hoy, autor: req.user.nombre || req.user.username, cambio: "Creación del documento" }],
-    cuerpo: [] };
-  await documentos().insertOne({ _id: id, tipo, ...esqueleto, creado: hoy, actualizado: hoy });
+  let esqueleto;
+  await crearDocumentoNuevo(tipo, (id) => {
+    esqueleto = { id, tipo, titulo: "", estado: "borrador", autores: [], fecha_creacion: hoy, version: "0.1",
+      historial: [{ version: "0.1", fecha: hoy, autor: req.user.nombre || req.user.username, cambio: "Creación del documento" }],
+      cuerpo: [] };
+    return { _id: id, tipo, ...esqueleto, creado: hoy, actualizado: hoy };
+  });
   res.status(201).json(esqueleto);
 });
 
@@ -219,12 +256,13 @@ app.post("/api/importar", async (req, res) => {
       return imgId;
     };
     const { titulo, cuerpo } = await importarDocx(buffer, tipo, cfg, onImage);
-    const id = await nextId(tipo);
     const hoy = new Date().toISOString().slice(0, 10);
-    const docu = { id, tipo, titulo: titulo || "", estado: "borrador", autores: [], fecha_creacion: hoy, version: "0.1",
-      historial: [{ version: "0.1", fecha: hoy, autor: req.user.nombre || req.user.username, cambio: "Importado desde .docx" }],
-      cuerpo };
-    await documentos().insertOne({ _id: id, ...docu, creado: hoy, actualizado: hoy });
+    const id = await crearDocumentoNuevo(tipo, (id) => {
+      const docu = { id, tipo, titulo: titulo || "", estado: "borrador", autores: [], fecha_creacion: hoy, version: "0.1",
+        historial: [{ version: "0.1", fecha: hoy, autor: req.user.nombre || req.user.username, cambio: "Importado desde .docx" }],
+        cuerpo };
+      return { _id: id, ...docu, creado: hoy, actualizado: hoy };
+    });
     res.status(201).json({ id });
   } catch (e) {
     console.error(e);
@@ -363,8 +401,17 @@ app.get("/api/documentos/:id/export.docx", async (req, res) => {
   }
 });
 
+// Manejador de errores global: los rechazos async capturados por asyncSafe terminan acá,
+// devolviendo 500 en vez de dejar la request colgada.
+app.use((err, req, res, next) => {
+  console.error("Error no controlado:", err);
+  if (res.headersSent) return next(err);
+  const status = err.status || err.statusCode || 500;               // respeta 4xx (ej: JSON malformado = 400)
+  res.status(status).json({ error: status < 500 ? err.message : "Error interno del servidor" });
+});
+
 conectarMongo()
   .then(seedConfig)
   .then(seedAdmin)
-  .then(() => { avisarSeguridad(); app.listen(PORT, () => console.log(`DADM v1.0.0 escuchando en http://localhost:${PORT}`)); })
+  .then(() => { avisarSeguridad(); app.listen(PORT, () => console.log(`DADM v1.2.1 escuchando en http://localhost:${PORT}`)); })
   .catch(err => { console.error("No se pudo conectar a MongoDB:", err.message); process.exit(1); });

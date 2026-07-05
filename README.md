@@ -1,4 +1,4 @@
-# DADM v1.0.0 — Data Architect Document Manager
+# DADM v1.2.1 — Data Architect Document Manager
 
 Herramienta de gestión de documentos de arquitectura (ADR / RFC) de Arquitectura Data, Banco Galicia.
 Los arquitectos completan los datos en el editor web y DADM genera el documento con el formato oficial.
@@ -7,6 +7,7 @@ Los arquitectos completan los datos en el editor web y DADM genera el documento 
 
 - **Documentos ADR y RFC** con núcleo obligatorio + secciones opcionales + subsecciones, según el formato vigente del equipo.
 - **Objetos a demanda** en cualquier sección: simples (texto, callout con estilos, código, imagen PNG/JPG) y complejos (tabla libre, comparativa, matriz de riesgos, RACI, matriz de asignación, glosario, cronograma, stakeholders).
+- **Texto enriquecido** en bloques de texto, callouts y celdas: negrita, itálica, subrayado, tachado, código inline, tipografía y tamaño desde una barra flotante. El formato se conserva en el Word (.docx) y en la vista imprimible.
 - **Configuración editable** (⚙): cambiar qué secciones son obligatorias/recomendadas/opcionales y agregar apartados nuevos al catálogo, sin tocar código. Se persiste en la base y aplica a los documentos nuevos.
 - **Workflow con validación**: no se sale de borrador sin título, ficha completa y todas las secciones obligatorias según la configuración vigente. La validación corre en el cliente y también en el servidor.
 - **IDs correlativos** asignados por el servidor (pisos configurables en `secuencia_inicial` para convivir con los documentos históricos).
@@ -64,6 +65,7 @@ auth.js          autenticación: hash de contraseñas y token de sesión firmado
 db/mongo.js      conexión y colecciones (documentos · config · imágenes · usuarios)
 renderer.js      JSON → .docx con el formato oficial
 importer.js      .docx → JSON del schema (importación best-effort)
+openapi.js       especificación OpenAPI 3 servida en /api-docs (Swagger UI)
 schemas/         adr.schema.json · rfc.schema.json · catalogos.json (seed de configuración)
 public/          editor web (single-file)
 ```
@@ -95,11 +97,13 @@ public/          editor web (single-file)
 | POST | `/api/imagenes/gc` | Borrar imágenes huérfanas sin referencia (admin) |
 | GET | `/api/health` | Health-check público (pinguea Mongo) |
 
+Documentación interactiva de la API (Swagger / OpenAPI 3) en **`/api-docs`**; especificación cruda en **`/api-docs.json`**.
+
 ## Historial de versiones
 
 Ver [`CHANGELOG.md`](CHANGELOG.md).
 
-## Roadmap post-1.0
+## Roadmap
 
 - Usuarios / integración AD: aprobaciones con identidad real y permisos de admin para ⚙.
 - Workflow de transición server-side (hoy el cliente arma la transición y el server valida el resultado).
