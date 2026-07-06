@@ -1,10 +1,10 @@
-<mxfile host="Electron" agent="DADM" version="1.1.0">
+<mxfile host="Electron" agent="DADM" version="1.2.1">
   <diagram id="dadm-c1-contexto" name="C1 · Contexto">
     <mxGraphModel dx="1100" dy="850" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="c1t" parent="1" vertex="1" style="text;html=1;fontSize=20;fontStyle=1;align=left;verticalAlign=middle;fontColor=#0B2545;" value="DADM 1.1.0 — Nivel 1 · Diagrama de Contexto del Sistema">
+        <mxCell id="c1t" parent="1" vertex="1" style="text;html=1;fontSize=20;fontStyle=1;align=left;verticalAlign=middle;fontColor=#0B2545;" value="DADM 1.2.1 — Nivel 1 · Diagrama de Contexto del Sistema">
           <mxGeometry x="60" y="30" width="800" height="30" as="geometry" />
         </mxCell>
         <mxCell id="c1s" parent="1" vertex="1" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontColor=#5A6B7B;" value="Data Architect Document Manager · Arquitectura Data, Banco Galicia — quién usa el sistema y con qué se relaciona">
@@ -16,7 +16,7 @@
         <mxCell id="c1p2" parent="1" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#08427B;strokeColor=#052E56;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontSize=12;arcSize=10;" value="&lt;b&gt;Architect&lt;/b&gt;&lt;div style=&quot;font-size:10px&quot;&gt;[Persona]&lt;/div&gt;&lt;div style=&quot;font-size:10px;margin-top:6px&quot;&gt;Crea y edita ADRs y RFCs; participa con comentarios&lt;/div&gt;">
           <mxGeometry x="90" y="400" width="230" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="c1sys" parent="1" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1168BD;strokeColor=#0B4884;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontSize=14;arcSize=8;" value="&lt;b&gt;DADM&lt;/b&gt;&lt;div style=&quot;font-size:10px&quot;&gt;[Sistema de software]&lt;/div&gt;&lt;div style=&quot;font-size:10px;margin-top:8px&quot;&gt;Gestión de documentos de arquitectura (ADR / RFC): edición estructurada por bloques, flujo de estados y control de acceso por roles&lt;/div&gt;">
+        <mxCell id="c1sys" parent="1" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1168BD;strokeColor=#0B4884;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontSize=14;arcSize=8;" value="&lt;b&gt;DADM&lt;/b&gt;&lt;div style=&quot;font-size:10px&quot;&gt;[Sistema de software]&lt;/div&gt;&lt;div style=&quot;font-size:10px;margin-top:8px&quot;&gt;Gestión de documentos de arquitectura (ADR / RFC): edición estructurada por bloques con texto enriquecido, flujo de estados, control de acceso por roles y API documentada (OpenAPI / Swagger)&lt;/div&gt;">
           <mxGeometry x="480" y="290" width="290" height="140" as="geometry" />
         </mxCell>
         <mxCell id="c1ext" parent="1" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#8C8C8C;strokeColor=#5F5F5F;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontSize=12;arcSize=10;" value="&lt;b&gt;Documentos Word (.docx)&lt;/b&gt;&lt;div style=&quot;font-size:10px&quot;&gt;[Sistema externo]&lt;/div&gt;&lt;div style=&quot;font-size:10px;margin-top:6px&quot;&gt;Intercambio con áreas que trabajan en Word&lt;/div&gt;">
@@ -45,7 +45,7 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="c2t" parent="1" vertex="1" style="text;html=1;fontSize=20;fontStyle=1;align=left;verticalAlign=middle;fontColor=#0B2545;" value="DADM 1.1.0 — Nivel 2 · Diagrama de Contenedores">
+        <mxCell id="c2t" parent="1" vertex="1" style="text;html=1;fontSize=20;fontStyle=1;align=left;verticalAlign=middle;fontColor=#0B2545;" value="DADM 1.2.1 — Nivel 2 · Diagrama de Contenedores">
           <mxGeometry x="60" y="30" width="800" height="30" as="geometry" />
         </mxCell>
         <mxCell id="c2s" parent="1" vertex="1" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontColor=#5A6B7B;" value="Piezas ejecutables y de datos que forman DADM · tecnologías y protocolos de comunicación">
@@ -57,10 +57,10 @@
         <mxCell id="c2bnd" parent="1" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#1168BD;dashed=1;dashPattern=8 6;verticalAlign=top;align=left;fontColor=#1168BD;fontSize=12;fontStyle=2;spacingLeft=12;spacingTop=8;arcSize=3;" value="Límite del sistema: DADM">
           <mxGeometry x="330" y="140" width="700" height="520" as="geometry" />
         </mxCell>
-        <mxCell id="c2spa" parent="1" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#438DD5;strokeColor=#2E6295;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontSize=12;arcSize=8;" value="&lt;b&gt;SPA&lt;/b&gt;&lt;div style=&quot;font-size:10px&quot;&gt;[Contenedor: Navegador · JS vanilla single-file]&lt;/div&gt;&lt;div style=&quot;font-size:10px;margin-top:6px&quot;&gt;public/index.html — Login · Home · Editor · Vista imprimible&lt;/div&gt;">
+        <mxCell id="c2spa" parent="1" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#438DD5;strokeColor=#2E6295;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontSize=12;arcSize=8;" value="&lt;b&gt;SPA&lt;/b&gt;&lt;div style=&quot;font-size:10px&quot;&gt;[Contenedor: Navegador · JS vanilla single-file]&lt;/div&gt;&lt;div style=&quot;font-size:10px;margin-top:6px&quot;&gt;public/index.html — Login · Home · Editor (texto enriquecido) · Vista imprimible&lt;/div&gt;">
           <mxGeometry x="370" y="300" width="270" height="130" as="geometry" />
         </mxCell>
-        <mxCell id="c2api" parent="1" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#438DD5;strokeColor=#2E6295;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontSize=12;arcSize=8;" value="&lt;b&gt;API Backend&lt;/b&gt;&lt;div style=&quot;font-size:10px&quot;&gt;[Contenedor: Node.js ≥ 22.5 + Express]&lt;/div&gt;&lt;div style=&quot;font-size:10px;margin-top:6px&quot;&gt;server.js · REST /api/* · sesión por cookie HMAC · validación Ajv · export/import .docx&lt;/div&gt;">
+        <mxCell id="c2api" parent="1" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#438DD5;strokeColor=#2E6295;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontSize=12;arcSize=8;" value="&lt;b&gt;API Backend&lt;/b&gt;&lt;div style=&quot;font-size:10px&quot;&gt;[Contenedor: Node.js ≥ 22.5 + Express]&lt;/div&gt;&lt;div style=&quot;font-size:10px;margin-top:6px&quot;&gt;server.js · REST /api/* · sesión por cookie HMAC · validación Ajv · export/import .docx · Swagger /api-docs · manejo de errores async centralizado&lt;/div&gt;">
           <mxGeometry x="720" y="300" width="280" height="130" as="geometry" />
         </mxCell>
         <mxCell id="c2db" parent="1" vertex="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=14;fillColor=#438DD5;strokeColor=#2E6295;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontSize=12;" value="&lt;b&gt;Base de datos DADM&lt;/b&gt;&lt;div style=&quot;font-size:10px&quot;&gt;[Contenedor: MongoDB 7 · Docker · :27017]&lt;/div&gt;&lt;div style=&quot;font-size:10px;margin-top:6px&quot;&gt;documents · users · config · imagenes&lt;/div&gt;">
@@ -78,7 +78,7 @@
         <mxCell id="c2e4" edge="1" parent="1" source="c2api" target="c2db" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#404040;fontSize=10;fontColor=#333333;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" value="Lee y escribe&#10;[driver mongodb · MONGO_URI]">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="c2inf" parent="1" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F7F9FB;strokeColor=#B4C2CF;align=left;verticalAlign=top;spacingLeft=12;spacingTop=8;fontSize=10;arcSize=6;fontColor=#333333;" value="&lt;b&gt;Despliegue&lt;/b&gt; — docker-compose.yml levanta MongoDB · Dockerfile empaqueta la API · .env (no commiteado): MONGO_URI · AUTH_SECRET · ADMIN_*">
+        <mxCell id="c2inf" parent="1" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F7F9FB;strokeColor=#B4C2CF;align=left;verticalAlign=top;spacingLeft=12;spacingTop=8;fontSize=10;arcSize=6;fontColor=#333333;" value="&lt;b&gt;Despliegue&lt;/b&gt; — docker-compose.yml levanta MongoDB · Dockerfile empaqueta la API (usuario no-root · copias explícitas · .dockerignore) · .env (no commiteado): MONGO_URI · AUTH_SECRET · ADMIN_* · docs API en /api-docs">
           <mxGeometry x="70" y="700" width="960" height="50" as="geometry" />
         </mxCell>
       </root>
@@ -89,7 +89,7 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="c3t" parent="1" vertex="1" style="text;html=1;fontSize=20;fontStyle=1;align=left;verticalAlign=middle;fontColor=#0B2545;" value="DADM 1.1.0 — Nivel 3 · Diagrama de Componentes">
+        <mxCell id="c3t" parent="1" vertex="1" style="text;html=1;fontSize=20;fontStyle=1;align=left;verticalAlign=middle;fontColor=#0B2545;" value="DADM 1.2.1 — Nivel 3 · Diagrama de Componentes">
           <mxGeometry x="40" y="16" width="700" height="30" as="geometry" />
         </mxCell>
         <mxCell id="c3leg" parent="1" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F7F9FB;strokeColor=#B4C2CF;align=left;verticalAlign=middle;spacingLeft=12;fontSize=10;arcSize=6;fontColor=#333333;" value="&lt;b&gt;Leyenda:&lt;/b&gt; → sólida = flujo HTTP / datos&amp;nbsp;&amp;nbsp; ⇢ punteada = dependencia interna (usa)&amp;nbsp;&amp;nbsp; [auth] requiere sesión&amp;nbsp;&amp;nbsp; [admin] = solo Architect Lead">
@@ -107,7 +107,7 @@
         <mxCell id="cHome" parent="zCli" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;Home&lt;/b&gt;&lt;div style=&quot;font-size:10px;margin-top:4px&quot;&gt;Nuevo ADR · Nuevo RFC · Importar .docx · tabla de documentos&lt;/div&gt;">
           <mxGeometry x="534" y="46" width="235" height="90" as="geometry" />
         </mxCell>
-        <mxCell id="cEdit" parent="zCli" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;Editor&lt;/b&gt;&lt;div style=&quot;font-size:10px;margin-top:4px&quot;&gt;estado · transiciones · eliminar [admin] · ficha · secciones/bloques (texto, callout, código, imagen, tablas) · comentarios RFC&lt;/div&gt;">
+        <mxCell id="cEdit" parent="zCli" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;Editor&lt;/b&gt;&lt;div style=&quot;font-size:10px;margin-top:4px&quot;&gt;estado · transiciones · eliminar [admin] · ficha · secciones/bloques (texto, callout, código, imagen, tablas) · texto enriquecido: barra de formato flotante (negrita/itálica/subrayado/tachado/código/fuente/tamaño) sanitizado · comentarios RFC&lt;/div&gt;">
           <mxGeometry x="789" y="46" width="235" height="90" as="geometry" />
         </mxCell>
         <mxCell id="cDlg" parent="zCli" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;Diálogos&lt;/b&gt;&lt;div style=&quot;font-size:10px;margin-top:4px&quot;&gt;Configuración [admin] · Usuarios [admin] · Ver JSON&lt;/div&gt;">
@@ -140,7 +140,7 @@
         <mxCell id="zSrv" parent="1" vertex="1" style="swimlane;html=1;rounded=1;startSize=30;fontSize=14;fontStyle=1;collapsible=0;horizontal=1;arcSize=3;fillColor=#D5E8D4;strokeColor=#82B366;swimlaneFillColor=#FBFDFB;fontColor=#2E4A2E;verticalAlign=middle;" value="SERVIDOR — API · Node + Express · server.js">
           <mxGeometry x="40" y="320" width="1574" height="300" as="geometry" />
         </mxCell>
-        <mxCell id="sStatic" parent="zSrv" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#82B366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;express.static&lt;/b&gt;&lt;div style=&quot;font-size:10px;margin-top:4px&quot;&gt;sirve public/ (la SPA)&lt;/div&gt;">
+        <mxCell id="sStatic" parent="zSrv" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#82B366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;express.static + Swagger&lt;/b&gt;&lt;div style=&quot;font-size:10px;margin-top:4px&quot;&gt;sirve public/ (la SPA) · /api-docs (Swagger UI · openapi.js) · /api-docs.json&lt;/div&gt;">
           <mxGeometry x="24" y="44" width="260" height="56" as="geometry" />
         </mxCell>
         <mxCell id="sMw" parent="zSrv" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#82B366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;Middleware de sesión&lt;/b&gt;&lt;div style=&quot;font-size:10px;margin-top:4px&quot;&gt;cookie dadm_token → verifyToken (auth.js) → req.user&lt;/div&gt;">
@@ -149,7 +149,7 @@
         <mxCell id="sGuard" parent="zSrv" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=11;arcSize=8;" value="&lt;b&gt;Guards&lt;/b&gt;&lt;div style=&quot;font-size:10px;margin-top:4px&quot;&gt;requireAuth · requireAdmin (rol architect_lead)&lt;/div&gt;">
           <mxGeometry x="744" y="44" width="380" height="56" as="geometry" />
         </mxCell>
-        <mxCell id="sUtil" parent="zSrv" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#82B366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=10;arcSize=8;dashed=1;" value="&lt;b&gt;Utilidades de arranque&lt;/b&gt;&lt;div style=&quot;font-size:10px;margin-top:4px&quot;&gt;nextId() ADR-NNN / RFC-NNNN · seedConfig() · seedAdmin(): cargan catálogo (schemas/catalogos.json) y Architect Lead inicial&lt;/div&gt;">
+        <mxCell id="sUtil" parent="zSrv" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#82B366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=10;arcSize=8;dashed=1;" value="&lt;b&gt;Infra de la API&lt;/b&gt;&lt;div style=&quot;font-size:10px;margin-top:4px&quot;&gt;asyncSafe + manejador de errores global (500 / 4xx) · nextId() ADR-NNN / RFC-NNNN reintenta ante colisión · seedConfig() / seedAdmin(): catálogo (schemas/catalogos.json) y Architect Lead inicial&lt;/div&gt;">
           <mxGeometry x="1154" y="44" width="396" height="56" as="geometry" />
         </mxCell>
         <mxCell id="zRutas" parent="zSrv" vertex="1" style="swimlane;html=1;rounded=1;startSize=26;fontSize=12;fontStyle=1;collapsible=0;horizontal=1;arcSize=3;fillColor=#D5E8D4;strokeColor=#82B366;swimlaneFillColor=#FFFFFF;fontColor=#2E4A2E;verticalAlign=middle;" value="Rutas REST /api/*">
@@ -185,7 +185,7 @@
         <mxCell id="dVal" parent="zDom" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D79B00;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=10;arcSize=8;" value="&lt;b&gt;Validación&lt;/b&gt;&lt;div style=&quot;margin-top:4px&quot;&gt;Ajv + schemas/ · adr.schema · rfc.schema · catalogos.json (seed)&lt;/div&gt;">
           <mxGeometry x="310" y="46" width="230" height="110" as="geometry" />
         </mxCell>
-        <mxCell id="dRender" parent="zDom" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D79B00;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=10;arcSize=8;" value="&lt;b&gt;renderer.js&lt;/b&gt;&lt;div style=&quot;margin-top:4px&quot;&gt;JSON → .docx (lib docx)&lt;/div&gt;">
+        <mxCell id="dRender" parent="zDom" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D79B00;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=10;arcSize=8;" value="&lt;b&gt;renderer.js&lt;/b&gt;&lt;div style=&quot;margin-top:4px&quot;&gt;JSON → .docx (lib docx) · HTML inline → runs (texto enriquecido)&lt;/div&gt;">
           <mxGeometry x="580" y="46" width="230" height="110" as="geometry" />
         </mxCell>
         <mxCell id="dImport" parent="zDom" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D79B00;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingRight=6;fontSize=10;arcSize=8;" value="&lt;b&gt;importer.js&lt;/b&gt;&lt;div style=&quot;margin-top:4px&quot;&gt;.docx → modelo (mammoth + html parser)&lt;/div&gt;">
@@ -259,7 +259,7 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="d4t" parent="1" vertex="1" style="text;html=1;fontSize=20;fontStyle=1;align=left;verticalAlign=middle;fontColor=#0B2545;" value="DADM 1.1.0 — Vista Dinámica · Crear y exportar un documento">
+        <mxCell id="d4t" parent="1" vertex="1" style="text;html=1;fontSize=20;fontStyle=1;align=left;verticalAlign=middle;fontColor=#0B2545;" value="DADM 1.2.1 — Vista Dinámica · Crear y exportar un documento">
           <mxGeometry x="60" y="30" width="900" height="30" as="geometry" />
         </mxCell>
         <mxCell id="d4s" parent="1" vertex="1" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontColor=#5A6B7B;" value="Flujo runtime numerado: autenticación → creación validada → exportación .docx">
@@ -301,7 +301,7 @@
         <mxCell id="d4e8" edge="1" parent="1" source="d4api" target="d4spa" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#404040;dashed=1;fontSize=10;fontColor=#0B2545;fontStyle=1;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.9;entryX=1;entryY=0.9;" value="8 · renderer.js → .docx (descarga)">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="d4note" parent="1" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F7F9FB;strokeColor=#B4C2CF;align=left;verticalAlign=top;spacingLeft=12;spacingTop=8;fontSize=10;arcSize=6;fontColor=#333333;" value="&lt;b&gt;Notas&lt;/b&gt;&lt;div style=&quot;margin-top:4px&quot;&gt;· El middleware de sesión valida la cookie dadm_token en cada /api/* antes de los guards requireAuth / requireAdmin.&lt;br&gt;· La creación (paso 5) exige rol autenticado; borrar un borrador exige [admin]. La exportación incrusta las imágenes de la colección imagenes.&lt;/div&gt;">
+        <mxCell id="d4note" parent="1" vertex="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F7F9FB;strokeColor=#B4C2CF;align=left;verticalAlign=top;spacingLeft=12;spacingTop=8;fontSize=10;arcSize=6;fontColor=#333333;" value="&lt;b&gt;Notas&lt;/b&gt;&lt;div style=&quot;margin-top:4px&quot;&gt;· El middleware de sesión valida la cookie dadm_token en cada /api/* antes de los guards requireAuth / requireAdmin.&lt;br&gt;· La creación (paso 5) exige rol autenticado; borrar un borrador exige [admin]. La exportación incrusta las imágenes de la colección imagenes.&lt;br&gt;· Todo handler async deriva sus errores a un manejador global (asyncSafe) → 500 / 4xx; la creación reintenta el ID ante colisión concurrente.&lt;/div&gt;">
           <mxGeometry x="80" y="540" width="1010" height="80" as="geometry" />
         </mxCell>
       </root>

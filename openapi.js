@@ -39,7 +39,27 @@ const DocumentoResumen = {
     estado: { type: "string", example: "borrador" },
     version: { type: "string", example: "0.1" },
     actualizado: { type: "string", format: "date", example: "2026-07-05" },
+    ventana_hasta: { type: "string", format: "date", description: "RFC: cierre de la ventana de comentarios (para avisos)", example: "" },
+    comentarios_pendientes: { type: "integer", description: "RFC: comentarios sin resolución", example: 0 },
   },
+};
+
+const VersionResumen = {
+  type: "object",
+  properties: {
+    id: { type: "string", description: "ObjectId del snapshot", example: "6a4b2aafae0f3f5160f28a2c" },
+    version: { type: "string", example: "1.0" },
+    estado: { type: "string", example: "aprobado" },
+    fecha: { type: "string", format: "date" },
+    autor: { type: "string" },
+    titulo: { type: "string" },
+  },
+};
+const Version = {
+  allOf: [
+    { $ref: "#/components/schemas/VersionResumen" },
+    { type: "object", properties: { cuerpo: { type: "array", items: { type: "object" }, description: "Cuerpo del documento en esa versión." } } },
+  ],
 };
 
 const Documento = {
@@ -96,6 +116,7 @@ const openapi = {
     { name: "Usuarios", description: "Gestión de usuarios (solo Architect Lead)" },
     { name: "Configuración", description: "Catálogo editable de secciones" },
     { name: "Documentos", description: "ADR y RFC" },
+    { name: "Versiones", description: "Snapshots del cuerpo por transición de estado" },
     { name: "Imágenes", description: "Subida y consulta de imágenes embebidas" },
     { name: "Sistema", description: "Health-check" },
   ],
@@ -256,6 +277,32 @@ const openapi = {
         },
       },
     },
+    "/api/documentos/{id}/versiones": {
+      get: {
+        tags: ["Versiones"],
+        summary: "Listar versiones (snapshots) de un documento",
+        description: "Metadatos de cada snapshot guardado en las transiciones de estado (sin el cuerpo).",
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" }, example: "ADR-010" }],
+        responses: {
+          200: okJson({ type: "array", items: { $ref: "#/components/schemas/VersionResumen" } }),
+          401: r401,
+        },
+      },
+    },
+    "/api/documentos/{id}/versiones/{vid}": {
+      get: {
+        tags: ["Versiones"],
+        summary: "Obtener una versión completa (con cuerpo)",
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string" }, example: "ADR-010" },
+          { name: "vid", in: "path", required: true, schema: { type: "string" }, description: "ObjectId del snapshot" },
+        ],
+        responses: {
+          200: okJson({ $ref: "#/components/schemas/Version" }),
+          400: r400, 401: r401, 404: r404,
+        },
+      },
+    },
     "/api/imagenes": {
       post: {
         tags: ["Imágenes"],
@@ -288,7 +335,7 @@ const openapi = {
   },
   components: {
     securitySchemes: cookieAuth,
-    schemas: { Error: ErrorSchema, Perfil, Usuario, DocumentoResumen, Documento },
+    schemas: { Error: ErrorSchema, Perfil, Usuario, DocumentoResumen, Documento, VersionResumen, Version },
   },
   // por defecto, cada operación requiere la cookie de sesión; los endpoints públicos la sobrescriben con security: []
   security: [{ cookieAuth: [] }],

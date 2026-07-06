@@ -4,6 +4,21 @@ Todas las modificaciones relevantes de DADM se documentan en este archivo.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/)
 y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [1.3.0] — 2026-07-06
+
+Funcionalidades de producto (búsqueda, versiones/diff, notificaciones, modo oscuro) y endurecimiento de seguridad HTTP.
+
+### Added
+- **Búsqueda y filtros en el listado de documentos**: por texto (ID/título), tipo (ADR/RFC) y estado, con contador y **paginación** client-side.
+- **Versiones y diff**: en cada transición de estado se guarda un **snapshot del cuerpo** (nueva colección `versiones` en MongoDB). Desde el editor (botón «Versiones») se listan, se **comparan con la versión en edición** (diff línea a línea) y se puede **restaurar** el contenido de una versión al editor para revisarlo y guardarlo. Endpoints `GET /api/documentos/:id/versiones` y `/:id/versiones/:vid`; cascada de borrado.
+- **Notificaciones in-app**: banner en el inicio con los RFC (no cerrados) cuya ventana de comentarios cierra en ≤ 3 días o ya venció. El listado expone `ventana_hasta` y `comentarios_pendientes`.
+- **Modo oscuro**: toggle en la barra lateral, persistido en el navegador y respetando la preferencia del sistema; la vista imprimible se mantiene en blanco.
+- **Documentación OpenAPI** actualizada con los endpoints de versiones y los nuevos campos del listado.
+
+### Security
+- **Cabeceras de seguridad con Helmet + Content-Security-Policy** adaptada al front (bloquea scripts/orígenes externos salvo Google Fonts; `frame-ancestors 'none'`, `object-src 'none'`, `nosniff`, etc.).
+- **Cookie de sesión con `Secure`** cuando la conexión es HTTPS (auto-detección por `req.secure` / `x-forwarded-proto`, o forzado con `COOKIE_SECURE=true`).
+
 ## [1.2.1] — 2026-07-05
 
 Endurecimiento del backend: manejo de errores robusto y creación de documentos a prueba de concurrencia.
@@ -66,6 +81,7 @@ persistencia centralizada en MongoDB y export a Word server-side.
 ### Security
 - Credenciales y datos sensibles movidos a `.env` (excluido del control de versiones).
 
+[1.3.0]: https://github.com/alejandrogenovese/DADM/releases/tag/v1.3.0
 [1.2.1]: https://github.com/alejandrogenovese/DADM/releases/tag/v1.2.1
 [1.2.0]: https://github.com/alejandrogenovese/DADM/releases/tag/v1.2.0
 [1.1.0]: https://github.com/alejandrogenovese/DADM/releases/tag/v1.1.0

@@ -1,4 +1,4 @@
-// DADM v1.2.1 — Data Architect Document Manager
+// DADM v1.3.0 — Data Architect Document Manager
 // API: configuración (catálogo editable) + documentos + imágenes + export Word server-side.
 // Único almacenamiento: MongoDB (base DADM). No hay base local.
 const fs = require("node:fs");
@@ -9,13 +9,14 @@ try { process.loadEnvFile(path.join(__dirname, ".env")); } catch { /* sin .env: 
 
 const express = require("express");
 const crypto = require("node:crypto");
-const { Binary } = require("mongodb");
+const { Binary, ObjectId } = require("mongodb");
 const Ajv = require("ajv/dist/2020");
 const swaggerUi = require("swagger-ui-express");
+const helmet = require("helmet");
 const { renderDocx } = require("./renderer");
 const { importarDocx } = require("./importer");
 const { openapi } = require("./openapi");
-const { conectarMongo, documentos, config, imagenes, usuarios, pingMongo } = require("./db/mongo");
+const { conectarMongo, documentos, config, imagenes, usuarios, versiones, pingMongo } = require("./db/mongo");
 const { hashPassword, verifyPassword, signToken, verifyToken, parseCookies, TTL_S } = require("./auth");
 
 const PORT = process.env.PORT || 8321;
@@ -67,6 +68,31 @@ const asyncSafe = fn => (typeof fn !== "function" || fn.length === 4)
   app[m] = (...args) => original(...args.map(asyncSafe));
 });
 
+// ---------- cabeceras de seguridad (Helmet + CSP) ----------
+// CSP adaptada al front single-file: usa <style>/<script> y manejadores inline (onclick=),
+// por eso se habilita 'unsafe-inline' en script/style; se bloquean orígenes externos salvo
+// las fuentes de Google. upgradeInsecureRequests desactivado para no romper el dev en http.
+app.use(helmet({
+  contentSecurityPolicy: {
+    useDefaults: true,
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrcAttr: ["'unsafe-inline'"],           // habilita los onclick= del editor
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+      imgSrc: ["'self'", "data:"],
+      connectSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      frameAncestors: ["'none'"],                    // anti-clickjacking
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+      upgradeInsecureRequests: null,
+    },
+  },
+  crossOriginEmbedderPolicy: false,                  // no exigir CORP en recursos de terceros (fuentes)
+}));
+
 app.use(express.json({ limit: "20mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -76,7 +102,10 @@ app.get("/api-docs.json", (req, res) => res.json(openapi));
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openapi, { customSiteTitle: "DADM API" }));
 
 // ---------- autenticación ----------
-const cookieSesion = (token, maxAge) => `dadm_token=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${maxAge}`;
+// La cookie lleva Secure cuando la conexión es HTTPS (directa o detrás de proxy) o si se
+// fuerza con COOKIE_SECURE=true. En dev sobre http://localhost queda sin Secure para no romperse.
+const esSeguro = req => req.secure || req.headers["x-forwarded-proto"] === "https" || process.env.COOKIE_SECURE === "true";
+const cookieSesion = (token, maxAge, secure) => `dadm_token=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${maxAge}${secure ? "; Secure" : ""}`;
 
 // resuelve req.user (o null) desde la cookie firmada, para todas las requests
 app.use((req, res, next) => {
@@ -117,11 +146,11 @@ app.post("/api/login", async (req, res) => {
   if (!u || !verifyPassword(password || "", u.passwordHash)) { loginFallo(ip); return res.status(401).json({ error: "Usuario o contraseña incorrectos" }); }
   loginFails.delete(ip);
   const perfil = perfilDe(u);
-  res.setHeader("Set-Cookie", cookieSesion(signToken(perfil), TTL_S));
+  res.setHeader("Set-Cookie", cookieSesion(signToken(perfil), TTL_S, esSeguro(req)));
   res.json(perfil);
 });
 app.post("/api/logout", (req, res) => {
-  res.setHeader("Set-Cookie", cookieSesion("", 0));
+  res.setHeader("Set-Cookie", cookieSesion("", 0, esSeguro(req)));
   res.json({ ok: true });
 });
 app.get("/api/me", (req, res) => {
@@ -140,7 +169,7 @@ app.post("/api/password", async (req, res) => {
   if (!u || !verifyPassword(actual || "", u.passwordHash)) return res.status(401).json({ error: "La contraseña actual no es correcta" });
   await usuarios().updateOne({ _id: u._id }, { $set: { passwordHash: hashPassword(nueva), mustChangePassword: false } });
   const perfil = { ...perfilDe(u), mustChangePassword: false };
-  res.setHeader("Set-Cookie", cookieSesion(signToken(perfil), TTL_S)); // token fresco sin el flag
+  res.setHeader("Set-Cookie", cookieSesion(signToken(perfil), TTL_S, esSeguro(req))); // token fresco sin el flag
   res.json({ ok: true });
 });
 
@@ -195,7 +224,11 @@ app.put("/api/config", requireAdmin, async (req, res) => {
 // ---------- documentos ----------
 app.get("/api/documentos", async (req, res) => {
   const docs = await documentos().find({}).sort({ _id: 1 }).toArray();
-  res.json(docs.map(d => ({ id: d._id, tipo: d.tipo, titulo: d.titulo, estado: d.estado, version: d.version, actualizado: d.actualizado })));
+  res.json(docs.map(d => ({
+    id: d._id, tipo: d.tipo, titulo: d.titulo, estado: d.estado, version: d.version, actualizado: d.actualizado,
+    ventana_hasta: (d.ventana_comentarios || {}).hasta || "",
+    comentarios_pendientes: (d.comentarios || []).filter(c => !c.resolucion).length,
+  })));
 });
 
 // correlativo: máximo sufijo numérico existente + 1 (pisos configurables para convivir con los docs históricos)
@@ -283,7 +316,7 @@ function sinCamposInternos(row) {
 }
 
 app.put("/api/documentos/:id", async (req, res) => {
-  const row = await documentos().findOne({ _id: req.params.id }, { projection: { tipo: 1, creado: 1 } });
+  const row = await documentos().findOne({ _id: req.params.id }, { projection: { tipo: 1, creado: 1, estado: 1 } });
   if (!row) return res.status(404).json({ error: "No existe" });
   const docu = req.body;
   if (docu.id !== req.params.id || docu.tipo !== row.tipo) return res.status(400).json({ error: "id/tipo no coinciden" });
@@ -308,7 +341,29 @@ app.put("/api/documentos/:id", async (req, res) => {
   docu.fecha_actualizacion = new Date().toISOString().slice(0, 10);
   await documentos().replaceOne({ _id: req.params.id },
     { _id: req.params.id, ...docu, creado: row.creado, actualizado: docu.fecha_actualizacion });
+
+  // snapshot de versión al transicionar de estado (guarda el cuerpo de ese hito para comparar/restaurar)
+  if (docu.estado !== row.estado) {
+    await versiones().insertOne({
+      docId: req.params.id, version: docu.version, estado: docu.estado,
+      fecha: docu.fecha_actualizacion, autor: req.user.nombre || req.user.username,
+      titulo: docu.titulo || "", cuerpo: docu.cuerpo || [],
+    });
+  }
   res.json({ ok: true, fecha_actualizacion: docu.fecha_actualizacion });
+});
+
+// ---------- versiones (snapshots por transición de estado) ----------
+app.get("/api/documentos/:id/versiones", async (req, res) => {
+  const vs = await versiones().find({ docId: req.params.id }, { projection: { cuerpo: 0 } }).sort({ fecha: -1, _id: -1 }).toArray();
+  res.json(vs.map(v => ({ id: String(v._id), version: v.version, estado: v.estado, fecha: v.fecha, autor: v.autor, titulo: v.titulo })));
+});
+app.get("/api/documentos/:id/versiones/:vid", async (req, res) => {
+  let _id;
+  try { _id = new ObjectId(req.params.vid); } catch { return res.status(400).json({ error: "id de versión inválido" }); }
+  const v = await versiones().findOne({ _id, docId: req.params.id });
+  if (!v) return res.status(404).json({ error: "No existe" });
+  res.json({ id: String(v._id), version: v.version, estado: v.estado, fecha: v.fecha, autor: v.autor, titulo: v.titulo, cuerpo: v.cuerpo });
 });
 
 // ids de imágenes referenciadas por un documento (bloques tipo "imagen")
@@ -325,6 +380,7 @@ app.delete("/api/documentos/:id", requireAdmin, async (req, res) => {
   if (row.estado !== "borrador") return res.status(409).json({ error: "Solo se pueden eliminar borradores" });
   const ids = idsImagenes(row);
   if (ids.length) await imagenes().deleteMany({ _id: { $in: ids } }); // cascada: borra sus imágenes
+  await versiones().deleteMany({ docId: req.params.id });             // cascada: borra sus snapshots
   await documentos().deleteOne({ _id: req.params.id });
   res.json({ ok: true, imagenesEliminadas: ids.length });
 });
@@ -413,5 +469,5 @@ app.use((err, req, res, next) => {
 conectarMongo()
   .then(seedConfig)
   .then(seedAdmin)
-  .then(() => { avisarSeguridad(); app.listen(PORT, () => console.log(`DADM v1.2.1 escuchando en http://localhost:${PORT}`)); })
+  .then(() => { avisarSeguridad(); app.listen(PORT, () => console.log(`DADM v1.3.0 escuchando en http://localhost:${PORT}`)); })
   .catch(err => { console.error("No se pudo conectar a MongoDB:", err.message); process.exit(1); });

@@ -1,4 +1,4 @@
-# DADM v1.2.1 — Data Architect Document Manager
+# DADM v1.3.0 — Data Architect Document Manager
 
 Herramienta de gestión de documentos de arquitectura (ADR / RFC) de Arquitectura Data, Banco Galicia.
 Los arquitectos completan los datos en el editor web y DADM genera el documento con el formato oficial.
@@ -8,6 +8,8 @@ Los arquitectos completan los datos en el editor web y DADM genera el documento 
 - **Documentos ADR y RFC** con núcleo obligatorio + secciones opcionales + subsecciones, según el formato vigente del equipo.
 - **Objetos a demanda** en cualquier sección: simples (texto, callout con estilos, código, imagen PNG/JPG) y complejos (tabla libre, comparativa, matriz de riesgos, RACI, matriz de asignación, glosario, cronograma, stakeholders).
 - **Texto enriquecido** en bloques de texto, callouts y celdas: negrita, itálica, subrayado, tachado, código inline, tipografía y tamaño desde una barra flotante. El formato se conserva en el Word (.docx) y en la vista imprimible.
+- **Búsqueda y filtros** en el listado (texto, tipo, estado) con paginación, **notificaciones** de cierre de ventana de comentarios de RFC, y **modo oscuro** con toggle.
+- **Versiones y diff**: snapshot del cuerpo en cada transición de estado; comparación línea a línea con la versión en edición y restauración al editor.
 - **Configuración editable** (⚙): cambiar qué secciones son obligatorias/recomendadas/opcionales y agregar apartados nuevos al catálogo, sin tocar código. Se persiste en la base y aplica a los documentos nuevos.
 - **Workflow con validación**: no se sale de borrador sin título, ficha completa y todas las secciones obligatorias según la configuración vigente. La validación corre en el cliente y también en el servidor.
 - **IDs correlativos** asignados por el servidor (pisos configurables en `secuencia_inicial` para convivir con los documentos históricos).
@@ -25,6 +27,7 @@ Todo se guarda en **MongoDB** (base `DADM`), sin base local. Colecciones separad
 | `config` | Configuración/catálogo vigente (documento `clave: "catalogos"`) |
 | `imagenes` | Imágenes PNG/JPG subidas (`_id` = UUID, binario) |
 | `users` | Usuarios (`_id` = username), hash de contraseña y rol |
+| `versiones` | Snapshots del cuerpo por transición de estado (para historial y diff) |
 
 La conexión y las credenciales se configuran en un archivo `.env` (ver `.env.example`). Copiar y completar:
 
@@ -39,6 +42,8 @@ Variables: `PORT`, `MONGO_URI`, `MONGO_DB` (app), `MONGO_ROOT_USERNAME` / `MONGO
 Toda la API (salvo `/api/health`, `/api/login` y `/api/logout`) requiere sesión iniciada. Si no existe ningún usuario, al arrancar el servidor se crea automáticamente un **Architect Lead** inicial con `ADMIN_USER` / `ADMIN_PASS` (por defecto `admin` / `admin`), forzando el cambio de contraseña en el primer login. `AUTH_SECRET` firma el token de sesión (HMAC): definir un valor propio y largo en `.env` antes de usar en un entorno compartido.
 
 Roles: `architect` (uso normal del editor) y `architect_lead` (además, gestión de usuarios, configuración del catálogo y borrado de documentos).
+
+**Endurecimiento HTTP**: la cookie de sesión es `HttpOnly; SameSite=Lax` y agrega `Secure` cuando la conexión es HTTPS (auto-detección por `req.secure` / `x-forwarded-proto`, o forzado con `COOKIE_SECURE=true`). Las respuestas llevan cabeceras de seguridad vía **Helmet**, con una `Content-Security-Policy` que bloquea scripts/orígenes externos (salvo Google Fonts) y el embebido en frames (`frame-ancestors 'none'`).
 
 ## Correr local
 
@@ -91,6 +96,8 @@ public/          editor web (single-file)
 | PUT | `/api/documentos/:id` | Guardar — valida schema + obligatorias si no es borrador |
 | DELETE | `/api/documentos/:id` | Eliminar (solo borradores, admin) |
 | GET | `/api/documentos/:id/export.docx` | Word con formato oficial |
+| GET | `/api/documentos/:id/versiones` | Snapshots (versiones) del documento |
+| GET | `/api/documentos/:id/versiones/:vid` | Una versión completa (con cuerpo) |
 | POST | `/api/imagenes` | Subir PNG/JPG (`{"data":"data:image/png;base64,…"}`) — devuelve ID |
 | GET | `/api/imagenes/:id` | Servir la imagen |
 | DELETE | `/api/imagenes/:id` | Eliminar imagen |

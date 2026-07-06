@@ -11,7 +11,7 @@
   :root{
     --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;
     --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
-    --bg:oklch(0.985 0.004 60); --ink:oklch(0.15 0.010 30);
+    --bg:oklch(0.985 0.004 60); --ink:oklch(0.15 0.010 30); --surface:#fff; color-scheme:light;
     --muted:oklch(0.42 0.013 40); --muted2:oklch(0.52 0.013 45); --muted3:oklch(0.65 0.012 50);
     --border:oklch(0.88 0.008 60); --border2:oklch(0.94 0.006 60);
     --head:oklch(0.97 0.005 60);
@@ -21,6 +21,14 @@
     --side-text:oklch(0.78 0.010 55); --side-muted:oklch(0.52 0.013 45);
     /* legado para la vista imprimible */
     --naranja:oklch(0.71 0.21 50); --azul:oklch(0.55 0.12 215); --azul-suave:oklch(0.94 0.04 215);
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --bg:oklch(0.17 0.006 60); --surface:oklch(0.215 0.006 60); --ink:oklch(0.93 0.004 60);
+    --muted:oklch(0.72 0.010 55); --muted2:oklch(0.62 0.012 50); --muted3:oklch(0.52 0.012 50);
+    --border:oklch(0.33 0.008 60); --border2:oklch(0.27 0.007 60);
+    --head:oklch(0.26 0.007 60);
+    --orange-eyebrow:oklch(0.76 0.15 55); --blue:oklch(0.68 0.11 215);
   }
   *{box-sizing:border-box; margin:0}
   body{font-family:var(--sans); background:var(--bg); color:var(--ink); font-size:14px}
@@ -48,13 +56,13 @@
 
   /* login */
   .login-wrap{position:fixed; inset:0; z-index:300; display:flex; align-items:center; justify-content:center; background:var(--bg); padding:24px}
-  .login-card{width:min(360px,100%); background:#fff; border:1px solid var(--border); border-radius:12px; padding:28px 26px; box-shadow:0 20px 60px oklch(0 0 0/0.08); display:flex; flex-direction:column}
+  .login-card{width:min(360px,100%); background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:28px 26px; box-shadow:0 20px 60px oklch(0 0 0/0.08); display:flex; flex-direction:column}
   .login-card .lb{display:flex; align-items:center; gap:10px; margin-bottom:2px}
   .login-card .lb .nm{font:700 20px var(--sans); letter-spacing:-0.01em}
   .login-card .lb svg{color:var(--orange)}
   .login-card .lsub{font:400 12.5px var(--sans); color:var(--muted); margin-bottom:20px}
   .login-card label{font:600 12px var(--sans); margin:10px 0 4px}
-  .login-card input{border:1px solid var(--border); border-radius:6px; padding:9px 11px; font:400 14px var(--sans); background:#fff}
+  .login-card input{border:1px solid var(--border); border-radius:6px; padding:9px 11px; font:400 14px var(--sans); background:var(--surface)}
   .login-card input:focus{outline:none; border-color:var(--orange)}
   .login-card button{margin-top:20px; justify-content:center; padding:10px}
   .login-error{color:oklch(0.42 0.13 25); font:500 12px var(--sans); min-height:16px; margin-top:8px}
@@ -63,7 +71,7 @@
   .content{flex:1; overflow:auto; min-height:0}
 
   /* topbar (editor) */
-  .topbar{height:56px; flex-shrink:0; display:flex; align-items:center; gap:14px; padding:0 20px; background:#fff; border-bottom:1px solid var(--border); overflow-x:auto}
+  .topbar{height:56px; flex-shrink:0; display:flex; align-items:center; gap:14px; padding:0 20px; background:var(--surface); border-bottom:1px solid var(--border); overflow-x:auto}
   .tb-tipo{font:600 11px var(--mono); letter-spacing:.04em; color:var(--orange-eyebrow); text-transform:uppercase; white-space:nowrap}
   .tb-ver{font:400 12px var(--mono); color:var(--muted2); white-space:nowrap}
   .tb-saved{font:400 12px var(--sans); color:oklch(0.45 0.10 150); white-space:nowrap}
@@ -71,11 +79,11 @@
 
   /* botones */
   .btn,.btn-primary,.btn-ghost{display:inline-flex; align-items:center; gap:6px; font:500 13px var(--sans); padding:8px 13px; border-radius:4px; cursor:pointer; white-space:nowrap}
-  .btn{border:1px solid var(--border); background:#fff; color:var(--ink)}
+  .btn{border:1px solid var(--border); background:var(--surface); color:var(--ink)}
   .btn:hover{border-color:var(--muted3)}
   .btn-primary{border:1px solid transparent; background:var(--orange); color:#fff; padding:8px 14px}
   .btn-primary:hover{filter:brightness(1.05)}
-  .btn-ghost{border:0; background:transparent; color:oklch(0.32 0.012 35)}
+  .btn-ghost{border:0; background:transparent; color:var(--ink)}
   .btn-ghost:hover{background:var(--head)}
 
   /* chips y tags */
@@ -88,14 +96,14 @@
   .home h1{font:600 29px/1.2 var(--sans); letter-spacing:-0.012em; margin:0 0 6px}
   .home .lead{font:400 13.5px/1.5 var(--sans); color:var(--muted); max-width:70ch; margin-bottom:22px}
   .cards{display:flex; gap:14px; margin-bottom:30px}
-  .card{cursor:pointer; flex:1; max-width:280px; padding:18px 20px; background:#fff; border:1px solid var(--border); border-radius:8px; transition:border-color 120ms, box-shadow 120ms}
+  .card{cursor:pointer; flex:1; max-width:280px; padding:18px 20px; background:var(--surface); border:1px solid var(--border); border-radius:8px; transition:border-color 120ms, box-shadow 120ms}
   .card:hover{border-color:var(--orange); box-shadow:0 8px 30px -12px oklch(0.71 0.21 50 / 0.25)}
   .card .ct{display:flex; align-items:center; gap:8px; margin-bottom:6px}
   .card .ct .ic{color:var(--orange-eyebrow)}
   .card.rfc .ct .ic{color:var(--blue)}
   .card .ct b{font:600 14px var(--sans)}
   .card .cd{font:400 12.5px/1.5 var(--sans); color:var(--muted)}
-  .tabla-docs{width:100%; border-collapse:separate; border-spacing:0; background:#fff; border:1px solid var(--border); border-radius:8px; overflow:hidden}
+  .tabla-docs{width:100%; border-collapse:separate; border-spacing:0; background:var(--surface); border:1px solid var(--border); border-radius:8px; overflow:hidden}
   .tabla-docs th{text-align:left; padding:11px 14px; font:600 11px var(--sans); letter-spacing:.05em; text-transform:uppercase; color:var(--muted2); background:var(--head); border-bottom:1px solid var(--border)}
   .tabla-docs td{padding:11px 14px; border-bottom:1px solid var(--border2); font:400 13px var(--sans); color:var(--ink)}
   .tabla-docs tr.fila{cursor:pointer}
@@ -105,24 +113,57 @@
   .tabla-docs .cmut{color:var(--muted)}
   .tabla-docs .sin{color:var(--muted3); font-style:italic}
   .tabla-docs .empty{padding:26px 14px; color:var(--muted3); font-style:italic}
+  /* versiones / diff */
+  .ver-lista{display:flex; flex-direction:column; gap:8px}
+  .ver-item{display:flex; align-items:center; gap:10px; border:1px solid var(--border); border-radius:8px; padding:10px 12px}
+  .ver-item .ver-meta{font:400 12px var(--mono); color:var(--muted2)}
+  .ver-item .ver-v{font:600 13px var(--sans); color:var(--ink)}
+  .ver-item .ver-acc{margin-left:auto; display:flex; gap:6px}
+  .ver-vacio{color:var(--muted3); font-style:italic; padding:8px 0}
+  .diff-box{margin-top:14px; border:1px solid var(--border); border-radius:8px; overflow:auto; max-height:44vh; font:400 12.5px/1.5 var(--mono); background:var(--surface)}
+  .diff-l{display:flex; gap:8px; padding:1px 10px; white-space:pre-wrap; word-break:break-word}
+  .diff-l .sig{flex-shrink:0; width:12px; color:var(--muted3)}
+  .diff-l.add{background:oklch(0.9 0.09 150 / 0.35)}
+  .diff-l.del{background:oklch(0.9 0.08 25 / 0.35)}
+  .diff-l.add .sig{color:oklch(0.5 0.12 150)}
+  .diff-l.del .sig{color:oklch(0.5 0.15 25)}
+  .diff-none{padding:12px; color:var(--muted3); font:400 13px var(--sans); font-style:italic}
+  .avisos-home{margin:0 0 22px; border:1px solid oklch(0.85 0.09 85); background:oklch(0.97 0.045 90); border-radius:8px; padding:12px 14px}
+  :root[data-theme="dark"] .avisos-home{border-color:oklch(0.5 0.09 85); background:oklch(0.28 0.05 90)}
+  .avisos-home .av-h{font:600 11px var(--sans); letter-spacing:.05em; text-transform:uppercase; color:oklch(0.52 0.13 75); margin-bottom:7px; display:flex; align-items:center; gap:6px}
+  :root[data-theme="dark"] .avisos-home .av-h{color:oklch(0.8 0.12 85)}
+  .avisos-home .av-item{display:block; width:100%; text-align:left; background:none; border:0; cursor:pointer; padding:4px 0; font:400 13px var(--sans); color:var(--ink)}
+  .avisos-home .av-item:hover{color:var(--orange-eyebrow)}
+  .avisos-home .av-item .av-dot{color:oklch(0.62 0.16 55); margin-right:7px}
+  .avisos-home .av-item.venc .av-dot{color:oklch(0.55 0.16 25)}
+  .filtros-docs{display:flex; gap:10px; margin-bottom:14px; align-items:center; flex-wrap:wrap}
+  .filtros-docs input[type=search]{flex:1; min-width:220px; max-width:380px; border:1px solid var(--border); border-radius:6px; padding:8px 11px; font:400 13px var(--sans); background:var(--surface); color:var(--ink)}
+  .filtros-docs select{border:1px solid var(--border); border-radius:6px; padding:8px 10px; font:400 13px var(--sans); background:var(--surface); color:var(--ink)}
+  .filtros-docs input:focus,.filtros-docs select:focus{outline:none; border-color:var(--orange)}
+  .filtros-docs .f-count{margin-left:auto; font:400 12px var(--sans); color:var(--muted3)}
+  .paginacion-docs{display:flex; gap:8px; align-items:center; justify-content:center; margin-top:14px}
+  .paginacion-docs button{border:1px solid var(--border); background:var(--surface); color:var(--ink); border-radius:6px; padding:6px 12px; font:500 12px var(--sans); cursor:pointer}
+  .paginacion-docs button:disabled{opacity:.4; cursor:default}
+  .paginacion-docs button:not(:disabled):hover{border-color:var(--muted3)}
+  .paginacion-docs .pag-info{font:400 12px var(--sans); color:var(--muted2)}
 
   /* editor */
   .editor-grid{display:grid; grid-template-columns:360px 1fr; gap:20px; padding:20px 24px; align-items:start}
-  .panel{background:#fff; border:1px solid var(--border); border-radius:8px; padding:18px}
+  .panel{background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:18px}
   .panel-h{font:600 12px var(--sans); text-transform:uppercase; letter-spacing:.06em; color:var(--muted2); margin-bottom:14px}
   .field{margin-bottom:13px}
   .field label{display:block; font:600 12px var(--sans); margin-bottom:4px; color:var(--ink)}
   .field .req{color:var(--orange-eyebrow)}
   .field .opt{color:var(--muted3); font-weight:400}
-  .panel input,.panel select,.panel textarea{width:100%; border:1px solid var(--border); border-radius:4px; padding:7px 9px; font:400 13px var(--sans); background:#fff; color:var(--ink)}
+  .panel input,.panel select,.panel textarea{width:100%; border:1px solid var(--border); border-radius:4px; padding:7px 9px; font:400 13px var(--sans); background:var(--surface); color:var(--ink)}
   .panel input.auto{background:var(--head); color:var(--muted2); font-style:italic}
   .nota{font-size:11px; color:var(--blue); background:oklch(0.94 0.04 215); border-radius:6px; padding:7px 10px; margin-top:4px}
   .actores{display:flex; flex-wrap:wrap; gap:6px}
-  .actor-chip{font:500 12px var(--sans); padding:5px 10px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--muted); cursor:pointer}
+  .actor-chip{font:500 12px var(--sans); padding:5px 10px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--muted); cursor:pointer}
   .actor-chip:hover{border-color:var(--muted3)}
   .actor-chip.on{background:oklch(0.93 0.07 50); border-color:var(--orange); color:var(--orange-eyebrow)}
 
-  .doc-panel{background:#fff; border:1px solid var(--border); border-radius:8px; padding:30px 36px; min-height:70vh}
+  .doc-panel{background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:30px 36px; min-height:70vh}
   .doc-eyebrow{font:600 11px var(--mono); letter-spacing:.06em; text-transform:uppercase; color:var(--orange-eyebrow); margin-bottom:6px}
   .doc-title{width:100%; border:0; outline:none; font:600 28px/1.25 var(--sans); letter-spacing:-0.01em; color:var(--ink); margin:2px 0 20px; padding:2px 0}
   .doc-title::placeholder{color:var(--muted3)}
@@ -133,7 +174,7 @@
   .sec-cab h3{font:600 16px var(--sans); margin:0}
   .sec-cab h4{font:600 14px var(--sans); margin:0}
   .acc{margin-left:auto; display:flex; gap:6px}
-  .acc-btn{font:500 11.5px var(--sans); padding:3px 9px; border-radius:4px; border:1px solid var(--border); background:#fff; cursor:pointer; color:oklch(0.32 0.012 35)}
+  .acc-btn{font:500 11.5px var(--sans); padding:3px 9px; border-radius:4px; border:1px solid var(--border); background:var(--surface); cursor:pointer; color:var(--ink)}
   .acc-btn:hover{border-color:var(--muted3)}
   .acc-btn.danger{border-color:oklch(0.90 0.05 25); color:oklch(0.42 0.13 25)}
   .subsec{margin:12px 0 6px 16px; border-left:3px solid var(--border); padding-left:14px}
@@ -145,7 +186,7 @@
   .bloque .quitar:hover{color:oklch(0.42 0.13 25)}
   .btx{width:100%; min-height:44px; padding:8px 10px; border:1px solid transparent; border-radius:6px; outline:none; font:400 14px/1.5 var(--sans); color:var(--ink); white-space:pre-wrap}
   .btx:hover{border-color:var(--border)}
-  .btx:focus{border-color:var(--orange); background:#fff}
+  .btx:focus{border-color:var(--orange); background:var(--surface)}
   .btx:empty:before{content:attr(data-ph); color:var(--muted3); font-style:italic}
   .btx.callout{border:0; border-radius:4px}
   .btx.callout:focus{border:0}
@@ -157,7 +198,7 @@
   table.tbl{border-collapse:collapse; width:100%; margin:4px 0}
   table.tbl th,table.tbl td{border:1px solid var(--border); padding:5px 8px; font:400 13px var(--sans); text-align:left; color:var(--ink)}
   table.tbl th{background:var(--head); font-weight:600}
-  table.tbl td:focus,table.tbl th:focus{outline:1px solid var(--orange); background:#fff}
+  table.tbl td:focus,table.tbl th:focus{outline:1px solid var(--orange); background:var(--surface)}
   .link-btn{font:400 12px var(--sans); color:var(--muted); background:none; border:0; cursor:pointer; padding:2px 0}
   .link-btn:hover{color:var(--ink)}
 
@@ -174,14 +215,14 @@
   .fmtbar select:focus{outline:1px solid var(--orange)}
 
   /* menú flotante */
-  .menu{position:absolute; background:#fff; border:1px solid var(--border); border-radius:8px; box-shadow:0 8px 24px -8px oklch(0 0 0/0.18); padding:6px; z-index:100; min-width:260px; max-height:60vh; overflow:auto}
+  .menu{position:absolute; background:var(--surface); border:1px solid var(--border); border-radius:8px; box-shadow:0 8px 24px -8px oklch(0 0 0/0.18); padding:6px; z-index:100; min-width:260px; max-height:60vh; overflow:auto}
   .menu button{display:block; width:100%; text-align:left; border:0; background:transparent; padding:7px 10px; border-radius:6px; cursor:pointer; font:400 13px var(--sans); color:var(--ink)}
   .menu button:hover{background:var(--head)}
   .menu button small{display:block; color:var(--muted3); font-weight:400}
   .menu .grupo{font:600 10px var(--sans); text-transform:uppercase; color:var(--muted2); padding:6px 10px 2px; letter-spacing:.06em}
 
   /* diálogos */
-  dialog{border:0; border-radius:12px; padding:0; max-width:900px; width:92%; box-shadow:0 20px 60px oklch(0 0 0/0.25)}
+  dialog{border:0; border-radius:12px; padding:0; max-width:900px; width:92%; background:var(--surface); color:var(--ink); box-shadow:0 20px 60px oklch(0 0 0/0.25)}
   dialog::backdrop{background:oklch(0 0 0/0.4)}
   .dlg-cab{display:flex; align-items:center; padding:16px 22px; border-bottom:1px solid var(--border)}
   .dlg-cab h3{font:600 15px var(--sans); margin:0}
@@ -204,7 +245,7 @@
   #vista{position:fixed; inset:0; background:oklch(0.42 0.013 40); overflow:auto; z-index:200; padding:24px 0}
   #vista .barra{position:sticky; top:0; text-align:center; margin-bottom:14px; z-index:210}
   #vista .barra button{margin:0 4px; box-shadow:0 2px 8px oklch(0 0 0/0.3)}
-  #vista .pagina{background:#fff; width:794px; margin:0 auto; padding:60px 68px; font:400 14px/1.45 var(--sans); color:var(--ink); box-shadow:0 4px 24px oklch(0 0 0/0.35)}
+  #vista .pagina{background:#fff; width:794px; margin:0 auto; padding:60px 68px; font:400 14px/1.45 var(--sans); color:#1a1a1a; box-shadow:0 4px 24px oklch(0 0 0/0.35)}
   #vista .marca-v{color:var(--muted2); font:500 11px var(--mono); letter-spacing:.05em; border-bottom:2px solid var(--orange); padding-bottom:6px}
   #vista .tipo-v{color:var(--orange-eyebrow); font:700 15px var(--sans); margin-top:20px}
   #vista .id-v{font:700 30px var(--sans); margin:2px 0}
@@ -232,6 +273,15 @@
     #vista .pagina{box-shadow:none; width:auto; padding:0}
   }
 </style>
+<script>
+  // tema (claro/oscuro) lo antes posible para evitar el flash: localStorage o preferencia del SO
+  (function(){
+    try{
+      var t = localStorage.getItem("dadm_theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", t);
+    }catch(e){ /* sin storage: queda el tema claro por defecto */ }
+  })();
+</script>
 </head>
 <body>
 
@@ -273,10 +323,11 @@
     </nav>
     <div class="side-user" id="side-user">
       <div style="min-width:0"><div class="u-name" id="user-name"></div><div class="u-role" id="user-role"></div></div>
+      <button class="u-logout" id="btn-tema" onclick="toggleTema()" title="Modo oscuro">🌙</button>
       <button class="u-logout" onclick="abrirCambioPassword(false)" title="Cambiar contraseña">🔑</button>
       <button class="u-logout" onclick="logout()" title="Cerrar sesión">Salir</button>
     </div>
-    <div class="side-foot">DADM v1.2.1 · Banco Galicia</div>
+    <div class="side-foot">DADM v1.3.0 · Banco Galicia</div>
   </aside>
 
   <div class="main">
@@ -307,10 +358,24 @@
             </div>
           </div>
         </div>
+        <div id="avisos-home" class="avisos-home oculto"></div>
+        <div class="filtros-docs">
+          <input id="f-texto" type="search" placeholder="Buscar por ID o título…" oninput="homePage=1; aplicarFiltrosHome()" aria-label="Buscar documentos">
+          <select id="f-tipo" onchange="homePage=1; aplicarFiltrosHome()" aria-label="Filtrar por tipo">
+            <option value="">Todos los tipos</option>
+            <option value="adr">ADR</option>
+            <option value="rfc">RFC</option>
+          </select>
+          <select id="f-estado" onchange="homePage=1; aplicarFiltrosHome()" aria-label="Filtrar por estado">
+            <option value="">Todos los estados</option>
+          </select>
+          <span id="f-count" class="f-count"></span>
+        </div>
         <table class="tabla-docs">
           <thead><tr><th>ID</th><th>Título</th><th>Tipo</th><th>Estado</th><th>Versión</th><th>Actualizado</th></tr></thead>
           <tbody id="lista-docs"></tbody>
         </table>
+        <div id="paginacion-docs" class="paginacion-docs"></div>
       </div>
 
       <div class="editor-grid oculto" id="editor">
@@ -334,6 +399,11 @@
   <div class="dlg-cab"><h3>Documento serializado (contrato adr/rfc.schema.json)</h3><button class="btn x" onclick="dlgJson.close()">Cerrar</button></div>
   <pre id="json-out"></pre>
   <div class="dlg-pie"><button class="btn" onclick="copiarJson()">Copiar</button></div>
+</dialog>
+
+<dialog id="dlg-versiones">
+  <div class="dlg-cab"><h3>Versiones del documento</h3><button class="btn x" onclick="dlgVersiones.close()">Cerrar</button></div>
+  <div class="dlg-body" id="versiones-cuerpo" style="min-width:520px"></div>
 </dialog>
 
 <dialog id="dlg-usuarios">
@@ -539,6 +609,21 @@ let USUARIO = null;
 let dirty = false; // hay cambios sin guardar en el editor
 const esAdmin = () => USUARIO && USUARIO.role === "architect_lead";
 
+// ---- tema claro/oscuro ----
+function actualizarBotonTema(){
+  const b = document.getElementById("btn-tema");
+  if(!b) return;
+  const dark = document.documentElement.getAttribute("data-theme") === "dark";
+  b.textContent = dark ? "☀️" : "🌙";
+  b.title = dark ? "Modo claro" : "Modo oscuro";
+}
+function toggleTema(){
+  const nuevo = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", nuevo);
+  try{ localStorage.setItem("dadm_theme", nuevo); }catch(e){ /* sin storage: no persiste, no rompe */ }
+  actualizarBotonTema();
+}
+
 async function init(){
   try{ document.execCommand("styleWithCSS", false, false); }catch{ /* execCommand: formato con tags (b/i/u/font) */ }
   try{ USUARIO = await api("GET","/api/me"); }
@@ -547,6 +632,7 @@ async function init(){
   CAT = derivar(CATALOGOS);
   document.getElementById("login").classList.add("oculto");
   document.querySelector(".shell").classList.remove("oculto");
+  actualizarBotonTema();
   aplicarRol();
   // marcar cambios sin guardar ante cualquier edición dentro del editor
   const ed = document.getElementById("editor");
@@ -606,22 +692,81 @@ async function logout(){
   try{ await api("POST","/api/logout"); }catch(e){ console.warn("Logout failed", e); }
   location.reload();
 }
+let docsHome = [], homePage = 1;
+const HOME_PAGE_SIZE = 15;
 async function renderHome(){
-  const docs = await api("GET","/api/documentos");
+  docsHome = await api("GET","/api/documentos");
+  poblarFiltroEstados();
+  renderAvisos();
+  homePage = 1;
+  aplicarFiltrosHome();
+}
+// avisos: RFCs (no terminales) cuya ventana de comentarios cierra pronto o ya venció
+function renderAvisos(){
+  const cont = document.getElementById("avisos-home");
+  const hoy = new Date().toISOString().slice(0,10);
+  const limite = new Date(Date.now()+3*86400000).toISOString().slice(0,10); // 3 días
+  const avisos = [];
+  docsHome.forEach(d=>{
+    if(d.tipo!=="rfc" || !d.ventana_hasta) return;
+    const terminal = !(((CAT.estados.rfc[d.estado]||{}).sig)||[]).length; // sin transiciones = cerrado/terminal
+    if(terminal) return;
+    const pend = d.comentarios_pendientes ? ` · ${d.comentarios_pendientes} comentario(s) sin resolver` : "";
+    if(d.ventana_hasta < hoy) avisos.push({id:d.id, venc:true, txt:`${d.id} — la ventana de comentarios venció el ${d.ventana_hasta}${pend}`});
+    else if(d.ventana_hasta <= limite) avisos.push({id:d.id, venc:false, txt:`${d.id} — la ventana de comentarios cierra el ${d.ventana_hasta}${pend}`});
+  });
+  if(!avisos.length){ cont.classList.add("oculto"); cont.innerHTML=""; return; }
+  cont.classList.remove("oculto");
+  cont.innerHTML = `<div class="av-h">⏰ Ventanas de comentarios (${avisos.length})</div>`
+    + avisos.map(a=>`<button type="button" class="av-item${a.venc?" venc":""}" onclick="abrirDocumento('${a.id}')"><span class="av-dot">●</span>${esc(a.txt)}</button>`).join("");
+}
+// opciones de estado: unión de los estados de ADR y RFC del catálogo (una sola vez)
+function poblarFiltroEstados(){
+  const sel = document.getElementById("f-estado");
+  if(!sel || sel.dataset.pob) return;
+  const vistos = new Set();
+  let h = `<option value="">Todos los estados</option>`;
+  ["adr","rfc"].forEach(tp=>Object.entries(CAT.estados[tp]||{}).forEach(([code,info])=>{
+    if(vistos.has(code)) return; vistos.add(code);
+    h += `<option value="${code}">${esc(info.et)}</option>`;
+  }));
+  sel.innerHTML = h;
+  sel.dataset.pob = "1";
+}
+function filaDocHtml(d){
+  const c = estadoColor(d.estado);
+  const et = (CAT.estados[d.tipo][d.estado]||{}).et||d.estado;
+  return `<tr class="fila" onclick="abrirDocumento('${d.id}')">
+    <td class="cid"><b>${d.id}</b></td>
+    <td>${d.titulo?esc(d.titulo):"<span class='sin'>(sin título)</span>"}</td>
+    <td class="cmut">${d.tipo.toUpperCase()}</td>
+    <td><span class="chip" style="background:${c.bg};color:${c.fg}">${et}</span></td>
+    <td class="cmono">v${d.version||"0.1"}</td>
+    <td class="cmono">${d.actualizado||""}</td>
+  </tr>`;
+}
+function aplicarFiltrosHome(){
+  const texto = (document.getElementById("f-texto").value||"").trim().toLowerCase();
+  const tipo = document.getElementById("f-tipo").value;
+  const estado = document.getElementById("f-estado").value;
+  const filtrados = docsHome.filter(d =>
+    (!tipo || d.tipo===tipo) &&
+    (!estado || d.estado===estado) &&
+    (!texto || d.id.toLowerCase().includes(texto) || (d.titulo||"").toLowerCase().includes(texto))
+  );
   const tb = document.getElementById("lista-docs");
-  if(!docs.length){ tb.innerHTML = `<tr><td class="empty" colspan="6">Todavía no hay documentos. Creá el primero con las tarjetas de arriba.</td></tr>`; return; }
-  tb.innerHTML = docs.map(d=>{
-    const c = estadoColor(d.estado);
-    const et = (CAT.estados[d.tipo][d.estado]||{}).et||d.estado;
-    return `<tr class="fila" onclick="abrirDocumento('${d.id}')">
-      <td class="cid"><b>${d.id}</b></td>
-      <td>${d.titulo?esc(d.titulo):"<span class='sin'>(sin título)</span>"}</td>
-      <td class="cmut">${d.tipo.toUpperCase()}</td>
-      <td><span class="chip" style="background:${c.bg};color:${c.fg}">${et}</span></td>
-      <td class="cmono">v${d.version||"0.1"}</td>
-      <td class="cmono">${d.actualizado||""}</td>
-    </tr>`;
-  }).join("");
+  const pag = document.getElementById("paginacion-docs");
+  document.getElementById("f-count").textContent = docsHome.length ? `${filtrados.length} de ${docsHome.length}` : "";
+  if(!docsHome.length){ tb.innerHTML = `<tr><td class="empty" colspan="6">Todavía no hay documentos. Creá el primero con las tarjetas de arriba.</td></tr>`; pag.innerHTML=""; return; }
+  if(!filtrados.length){ tb.innerHTML = `<tr><td class="empty" colspan="6">No hay documentos que coincidan con el filtro.</td></tr>`; pag.innerHTML=""; return; }
+  const totalPag = Math.ceil(filtrados.length / HOME_PAGE_SIZE);
+  homePage = Math.min(Math.max(1, homePage), totalPag);
+  const desde = (homePage-1)*HOME_PAGE_SIZE;
+  tb.innerHTML = filtrados.slice(desde, desde+HOME_PAGE_SIZE).map(filaDocHtml).join("");
+  pag.innerHTML = totalPag<=1 ? "" :
+    `<button ${homePage<=1?"disabled":""} onclick="homePage--; aplicarFiltrosHome()">‹ Anterior</button>`+
+    `<span class="pag-info">Página ${homePage} de ${totalPag}</span>`+
+    `<button ${homePage>=totalPag?"disabled":""} onclick="homePage++; aplicarFiltrosHome()">Siguiente ›</button>`;
 }
 function irHome(){
   if(dirty && !confirm("Tenés cambios sin guardar. ¿Salir sin guardar?")) return;
@@ -779,6 +924,7 @@ function renderTopbar(){
   }
   h += `<button class="btn-primary" onclick="guardarYVolver()">Guardar y volver</button>`;
   h += `<button class="btn" onclick="abrirVista()">Vista / Exportar</button>`;
+  h += `<button class="btn-ghost" onclick="abrirVersiones()">Versiones</button>`;
   h += `<button class="btn-ghost" onclick="abrirJson()">Ver JSON</button>`;
   h += `</div>`;
   document.getElementById("topbar").innerHTML = h;
@@ -963,7 +1109,7 @@ function renderBloque(b,expr,bi,ph){
     const cs = CALLOUT[est];
     const pills = Object.keys(CALLOUT).map(k=>{
       const c = CALLOUT[k];
-      const style = k===est ? `background:${c.bar};color:#fff` : `background:#fff;color:${c.fg}`;
+      const style = k===est ? `background:${c.bar};color:#fff` : `background:var(--surface);color:${c.fg}`;
       return `<button class="pill" style="border-color:${c.bar};${style}" onclick="setEstilo('${expr}',${bi},'${k}')">${c.label}</button>`;
     }).join("");
     return `<div class="bloque">${quitar}<div class="pills">${pills}</div><div class="btx callout rich" contenteditable="true" style="background:${cs.bg};color:${cs.fg};border-left:4px solid ${cs.bar}" data-ph="Decisión / advertencia / cita destacada…" oninput="${B}.contenido=cleanHtml(this)">${richOut(b.contenido)}</div></div>`;
@@ -1468,6 +1614,103 @@ function abrirJson(){
   dlgJson.showModal();
 }
 function copiarJson(){ navigator.clipboard.writeText(document.getElementById("json-out").textContent); }
+
+// ================= versiones (snapshots + diff + restaurar) =================
+const dlgVersiones = document.getElementById("dlg-versiones");
+async function abrirVersiones(){
+  document.getElementById("versiones-cuerpo").innerHTML = `<div class="ver-vacio">Cargando…</div>`;
+  dlgVersiones.showModal();
+  try{ renderListaVersiones(await api("GET","/api/documentos/"+doc.id+"/versiones")); }
+  catch(e){ document.getElementById("versiones-cuerpo").innerHTML = `<div class="ver-vacio">No se pudieron cargar las versiones: ${esc(e.message)}</div>`; }
+}
+function renderListaVersiones(vs){
+  const cont = document.getElementById("versiones-cuerpo");
+  if(!vs.length){ cont.innerHTML = `<div class="ver-vacio">Todavía no hay versiones. Se guarda un snapshot en cada transición de estado.</div>`; return; }
+  let h = `<div style="font:400 12px var(--sans);color:var(--muted);margin-bottom:12px">Snapshot del cuerpo en cada transición. Compará con la versión en edición o restaurá su contenido.</div><div class="ver-lista">`;
+  vs.forEach(v=>{
+    const et = (CAT.estados[doc.tipo][v.estado]||{}).et || v.estado;
+    h += `<div class="ver-item">
+      <div><div class="ver-v">v${v.version} · ${esc(et)}</div><div class="ver-meta">${v.fecha} · ${esc(v.autor||"")}</div></div>
+      <div class="ver-acc">
+        <button class="acc-btn" onclick="verDiffVersion('${v.id}')">Ver cambios</button>
+        <button class="acc-btn" onclick="restaurarVersion('${v.id}')">Restaurar</button>
+      </div></div>`;
+  });
+  cont.innerHTML = h + `</div><div id="diff-out"></div>`;
+}
+// cuerpo (formato schema) → líneas de texto plano para comparar
+function aTextoPlano(c){
+  if(c==null) return "";
+  let s = String(c);
+  if(looksHtml(s)) s = s.replace(/<\/(div|p)>/gi,"\n").replace(/<br\s*\/?>/gi,"\n").replace(/<[^>]+>/g,"");
+  const ta = document.createElement("textarea"); ta.innerHTML = s; return ta.value;
+}
+const celdaPlana = c => aTextoPlano(c).replace(/\s+/g," ").trim();
+function cuerpoALineas(cuerpo){
+  const out = [];
+  const bloque = b => {
+    if(["texto","callout","codigo"].includes(b.tipo)) aTextoPlano(b.contenido).split("\n").map(x=>x.trim()).filter(Boolean).forEach(l=>out.push(l));
+    else if(b.tipo==="imagen") out.push("[imagen"+(b.epigrafe?": "+b.epigrafe:"")+"]");
+    else if(b.tipo==="tabla_tipada") (b.filas||[]).forEach(f=>out.push("| "+Object.values(f).map(celdaPlana).join(" | ")+" |"));
+    else if(b.tipo==="tabla_libre"){ if(b.encabezados&&b.encabezados.length) out.push("| "+b.encabezados.map(celdaPlana).join(" | ")+" |"); (b.filas||[]).forEach(f=>out.push("| "+f.map(celdaPlana).join(" | ")+" |")); }
+  };
+  (cuerpo||[]).forEach(s=>{
+    out.push("§ "+(s.titulo||s.codigo||""));
+    (s.bloques||[]).forEach(bloque);
+    (s.subsecciones||[]).forEach(u=>{ out.push("§§ "+(u.titulo||"")); (u.bloques||[]).forEach(bloque); });
+  });
+  return out;
+}
+// diff línea a línea (LCS)
+function diffLineas(a,b){
+  const n=a.length, m=b.length;
+  const dp=Array.from({length:n+1},()=>new Array(m+1).fill(0));
+  for(let i=n-1;i>=0;i--) for(let j=m-1;j>=0;j--) dp[i][j]= a[i]===b[j] ? dp[i+1][j+1]+1 : Math.max(dp[i+1][j], dp[i][j+1]);
+  const out=[]; let i=0, j=0;
+  while(i<n && j<m){
+    if(a[i]===b[j]){ out.push({t:"=",l:a[i]}); i++; j++; }
+    else if(dp[i+1][j] >= dp[i][j+1]){ out.push({t:"-",l:a[i]}); i++; }
+    else { out.push({t:"+",l:b[j]}); j++; }
+  }
+  while(i<n) out.push({t:"-",l:a[i++]});
+  while(j<m) out.push({t:"+",l:b[j++]});
+  return out;
+}
+async function verDiffVersion(vid){
+  const out = document.getElementById("diff-out");
+  out.innerHTML = `<div class="diff-none">Calculando diferencias…</div>`;
+  let v;
+  try{ v = await api("GET","/api/documentos/"+doc.id+"/versiones/"+vid); }
+  catch(e){ out.innerHTML = `<div class="diff-none">No se pudo cargar: ${esc(e.message)}</div>`; return; }
+  const d = diffLineas(cuerpoALineas(v.cuerpo), cuerpoALineas(serializar().cuerpo));
+  const cambios = d.filter(x=>x.t!=="=").length;
+  if(!cambios){ out.innerHTML = `<div class="diff-none">Sin diferencias de contenido con la versión en edición.</div>`; return; }
+  out.innerHTML = `<div style="font:600 12px var(--sans);margin:14px 0 6px">Cambios vs. versión en edición: <span style="color:var(--orange-eyebrow)">${cambios}</span> &nbsp;<span style="font-weight:400;color:var(--muted3)">(− = v${v.version} · + = actual)</span></div>`
+    + `<div class="diff-box">` + d.map(x=>{
+        const cls = x.t==="+"?"add":(x.t==="-"?"del":"");
+        return `<div class="diff-l ${cls}"><span class="sig">${x.t==="="?"":x.t}</span><span>${esc(x.l)}</span></div>`;
+      }).join("") + `</div>`;
+}
+// restaura el cuerpo de una versión al editor (no pisa ficha/estado; el usuario revisa y guarda)
+function deserializarCuerpo(cuerpoRaw){
+  return (cuerpoRaw||[]).map(s=>({
+    codigo:s.codigo,
+    titulo:s.titulo || ((CAT.secciones[doc.tipo].find(d=>d.c===s.codigo)||{}).et) || s.codigo,
+    bloques:desBloques(s.bloques),
+    subsecciones:(s.subsecciones||[]).map(u=>({titulo:u.titulo, ph:"", bloques:desBloques(u.bloques)})),
+  }));
+}
+async function restaurarVersion(vid){
+  if(!confirm("¿Restaurar el CUERPO de esta versión al editor? Reemplaza las secciones y bloques actuales; después revisás y guardás. La ficha y el estado no cambian.")) return;
+  let v;
+  try{ v = await api("GET","/api/documentos/"+doc.id+"/versiones/"+vid); }
+  catch(e){ alert("No se pudo cargar la versión: "+e.message); return; }
+  doc.cuerpo = deserializarCuerpo(v.cuerpo);
+  dirty = true;
+  dlgVersiones.close();
+  renderDoc();
+  alert("Contenido de la v"+v.version+" restaurado en el editor. Revisá y guardá para confirmar.");
+}
 
 // ================= vista documento / export =================
 function vTexto(contenido){
