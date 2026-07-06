@@ -6,7 +6,7 @@ const { version } = require("./package.json");
 // Componentes reutilizables ------------------------------------------------
 const cookieAuth = { cookieAuth: { type: "apiKey", in: "cookie", name: "dadm_token" } };
 
-const Error = {
+const ErrorSchema = {
   type: "object",
   properties: { error: { type: "string", description: "Mensaje de error" } },
 };
@@ -288,9 +288,9 @@ const openapi = {
   },
   components: {
     securitySchemes: cookieAuth,
-    schemas: { Error, Perfil, Usuario, DocumentoResumen, Documento },
+    schemas: { Error: ErrorSchema, Perfil, Usuario, DocumentoResumen, Documento },
   },
-  // por defecto todo requiere la cookie de sesión; los endpoints públicos la sobrescriben con security: []
+  // por defecto, cada operación requiere la cookie de sesión; los endpoints públicos la sobrescriben con security: []
   security: [{ cookieAuth: [] }],
 };
 

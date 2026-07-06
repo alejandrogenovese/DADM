@@ -30,7 +30,7 @@ function tablaLibre(tableEl) {
   if (!rows.length) return null;
   const grid = rows.map(tr => tr.querySelectorAll("th,td").map(td => texto(td)));
   const ncol = Math.max(...grid.map(r => r.length), 1);
-  const pad = r => { const c = r.slice(); while (c.length < ncol) c.push(""); return c; };
+  const pad = r => { const c = r.slice(); while (c.length < ncol) { c.push(""); } return c; };
   const encabezados = pad(grid[0]);
   const filas = grid.slice(1).map(pad);
   return { tipo: "tabla_libre", encabezados, filas: filas.length ? filas : [new Array(ncol).fill("")] };
@@ -61,47 +61,54 @@ async function importarDocx(buffer, tipo, catalogos, onImage) {
   const target = () => (sub ? sub.bloques : ensureSec().bloques);
   const flush = () => { if (buf.length) { target().push({ tipo: "texto", contenido: buf.join("\n\n") }); buf = []; } };
 
+  // un handler por tipo de bloque HTML; comparten el estado (sec/sub/buf/titulo/cuerpo) por clausura
+  const onH1 = (el, i) => {
+    const txt = texto(el);
+    const m = matchSeccion(txt, tipo, catalogos);
+    // primer encabezado que no coincide con una sección => título del documento
+    if (i === 0 && !titulo && !cuerpo.length && m.codigo === "custom") { titulo = limpiarTitulo(txt); return; }
+    flush(); sub = null;
+    sec = { codigo: m.codigo, titulo: m.titulo, bloques: [] };
+    cuerpo.push(sec);
+  };
+  const onH2 = (el) => {
+    flush(); ensureSec();
+    sub = { titulo: limpiarTitulo(texto(el)) || "Subsección", bloques: [] };
+    sec.subsecciones = sec.subsecciones || [];
+    sec.subsecciones.push(sub);
+  };
+  const onParrafo = (el) => {
+    const imgs = el.querySelectorAll("img");
+    if (!imgs.length) { const txt = texto(el); if (txt) buf.push(txt); return; }
+    flush();
+    imgs.forEach(im => {
+      const mm = (im.getAttribute("src") || "").match(/__DADM_IMG_(\d+)__/);
+      const rid = mm ? imgIds[+mm[1]] : null;
+      if (rid) target().push({ tipo: "imagen", recurso: rid, epigrafe: "" });
+    });
+    const rest = texto(el);
+    if (rest) buf.push(rest);
+  };
+  const onLista = (el) => {
+    const items = el.querySelectorAll("li").map(li => "• " + texto(li)).filter(x => x !== "• ");
+    if (items.length) buf.push(items.join("\n"));
+  };
+  const onTabla = (el) => {
+    flush();
+    const tbl = tablaLibre(el);
+    if (tbl) target().push(tbl);
+  };
+  const onSubtitulo = (el) => { const txt = texto(el); if (txt) buf.push(txt); };
+
+  const handlerDe = (tag) => {
+    if (tag === "ul" || tag === "ol") return onLista;
+    if (/^h[3-6]$/.test(tag)) return onSubtitulo;
+    return { h1: onH1, h2: onH2, p: onParrafo, table: onTabla }[tag] || null;
+  };
+
   blocks.forEach((el, i) => {
-    const tag = (el.rawTagName || "").toLowerCase();
-    if (tag === "h1") {
-      const txt = texto(el);
-      const m = matchSeccion(txt, tipo, catalogos);
-      // primer encabezado que no coincide con una sección => título del documento
-      if (i === 0 && !titulo && !cuerpo.length && m.codigo === "custom") { titulo = limpiarTitulo(txt); return; }
-      flush(); sub = null;
-      sec = { codigo: m.codigo, titulo: m.titulo, bloques: [] };
-      cuerpo.push(sec);
-    } else if (tag === "h2") {
-      flush(); ensureSec();
-      sub = { titulo: limpiarTitulo(texto(el)) || "Subsección", bloques: [] };
-      sec.subsecciones = sec.subsecciones || [];
-      sec.subsecciones.push(sub);
-    } else if (tag === "p") {
-      const imgs = el.querySelectorAll("img");
-      if (imgs.length) {
-        flush();
-        imgs.forEach(im => {
-          const mm = (im.getAttribute("src") || "").match(/__DADM_IMG_(\d+)__/);
-          const rid = mm ? imgIds[+mm[1]] : null;
-          if (rid) target().push({ tipo: "imagen", recurso: rid, epigrafe: "" });
-        });
-        const rest = texto(el);
-        if (rest) buf.push(rest);
-      } else {
-        const t = texto(el);
-        if (t) buf.push(t);
-      }
-    } else if (tag === "ul" || tag === "ol") {
-      const items = el.querySelectorAll("li").map(li => "• " + texto(li)).filter(x => x !== "• ");
-      if (items.length) buf.push(items.join("\n"));
-    } else if (tag === "table") {
-      flush();
-      const tbl = tablaLibre(el);
-      if (tbl) target().push(tbl);
-    } else if (/^h[3-6]$/.test(tag)) {
-      const t = texto(el);
-      if (t) buf.push(t);
-    }
+    const handler = handlerDe((el.rawTagName || "").toLowerCase());
+    if (handler) handler(el, i);
   });
   flush();
 

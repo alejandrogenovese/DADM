@@ -11,11 +11,11 @@ const { parse } = require("node-html-parser");
 // El editor guarda el contenido de bloques de texto, callouts y celdas como HTML
 // inline (negrita/itálica/subrayado/tachado/código/fuente/tamaño). Acá se parsea a
 // runs. El contenido "plano" (histórico, sin tags) sigue el camino legado.
-const looksHtml = s => /<\/?[a-z][\s\S]*>/i.test(s || "") || /&(amp|lt|gt|quot|#\d+);/.test(s || "");
+const looksHtml = s => /<\/?[a-z][^>]*>/i.test(s || "") || /&(amp|lt|gt|quot|#\d+);/.test(s || "");
 const stripTags = s => String(s == null ? "" : s).replace(/<[^>]*>/g, "");
 
 const FONT_SIZE_HALFPT = { 1: 16, 2: 20, 3: 22, 4: 26, 5: 32, 6: 40, 7: 56 };
-const fontSizeAHalfPt = v => FONT_SIZE_HALFPT[parseInt(v, 10)] || 22;
+const fontSizeAHalfPt = v => FONT_SIZE_HALFPT[Number.parseInt(v, 10)] || 22;
 const cssSizeAHalfPt = (n, unit) => Math.round((unit === "pt" ? n : n * 0.75) * 2);
 
 function aplicarFmt(fmt, tag, el) {
@@ -31,7 +31,7 @@ function aplicarFmt(fmt, tag, el) {
   } else if (tag === "span") {
     const style = el.getAttribute("style") || "";
     const fam = style.match(/font-family:\s*([^;]+)/i); if (fam) f.font = fam[1].split(",")[0].replace(/["']/g, "").trim();
-    const fs = style.match(/font-size:\s*([\d.]+)\s*(px|pt)?/i); if (fs) f.size = cssSizeAHalfPt(parseFloat(fs[1]), fs[2]);
+    const fs = style.match(/font-size:\s*([\d.]+)\s*(px|pt)?/i); if (fs) f.size = cssSizeAHalfPt(Number.parseFloat(fs[1]), fs[2]);
   }
   return f;
 }
@@ -50,7 +50,7 @@ function htmlALineas(html, baseFmt = {}) {
       else if (ch.nodeType === 1) {
         const tag = (ch.rawTagName || "").toLowerCase();
         if (tag === "br") { endLine(); return; }
-        if (tag === "div" || tag === "p") { if (cur.length) endLine(); walk(ch, fmt); if (cur.length) endLine(); return; }
+        if (tag === "div" || tag === "p") { if (cur.length) { endLine(); } walk(ch, fmt); if (cur.length) { endLine(); } return; }
         walk(ch, aplicarFmt(fmt, tag, ch));
       }
     });
@@ -87,11 +87,11 @@ function renderLineas(lineas, size) {
       flush();
       output.push(new Paragraph({ numbering: { reference: "bullets", level: 0 },
         children: linea.runs.map(r => t(r.text, runProps(r, size))), spacing: { after: 60 } }));
-    } else if (!linea.runs.length) {
-      flush(); // línea en blanco → cierra el párrafo
-    } else {
+    } else if (linea.runs.length) {
       const saltoLinea = grupo.length > 0; // no es la primera línea del párrafo
       linea.runs.forEach((r, i) => grupo.push(t(r.text, { ...runProps(r, size), ...(saltoLinea && i === 0 ? { break: 1 } : {}) })));
+    } else {
+      flush(); // línea en blanco → cierra el párrafo
     }
   });
   flush();

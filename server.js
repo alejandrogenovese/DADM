@@ -1,14 +1,14 @@
 // DADM v1.2.1 — Data Architect Document Manager
 // API: configuración (catálogo editable) + documentos + imágenes + export Word server-side.
 // Único almacenamiento: MongoDB (base DADM). No hay base local.
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
 // carga variables de entorno desde .env si existe (credenciales fuera del código)
 try { process.loadEnvFile(path.join(__dirname, ".env")); } catch { /* sin .env: se usan defaults / env del sistema */ }
 
 const express = require("express");
-const crypto = require("crypto");
+const crypto = require("node:crypto");
 const { Binary } = require("mongodb");
 const Ajv = require("ajv/dist/2020");
 const swaggerUi = require("swagger-ui-express");
@@ -19,7 +19,7 @@ const { conectarMongo, documentos, config, imagenes, usuarios, pingMongo } = req
 const { hashPassword, verifyPassword, signToken, verifyToken, parseCookies, TTL_S } = require("./auth");
 
 const PORT = process.env.PORT || 8321;
-const ROLES = ["architect", "architect_lead"];
+const ROLES = new Set(["architect", "architect_lead"]);
 
 // validadores de schema
 const ajv = new Ajv({ strict: false, validateFormats: false });
@@ -86,7 +86,7 @@ app.use((req, res, next) => {
 });
 const requireAuth = (req, res, next) => req.user ? next() : res.status(401).json({ error: "No autenticado" });
 const requireAdmin = (req, res, next) =>
-  (req.user && req.user.role === "architect_lead") ? next() : res.status(403).json({ error: "Requiere rol Architect Lead" });
+  (req.user?.role === "architect_lead") ? next() : res.status(403).json({ error: "Requiere rol Architect Lead" });
 
 // health-check público (monitoreo): pinguea Mongo sin requerir sesión
 app.get("/api/health", async (req, res) => {
@@ -97,7 +97,7 @@ app.get("/api/health", async (req, res) => {
 // rate-limit de login por IP (en memoria): frena fuerza bruta
 const loginFails = new Map();
 const LOGIN_MAX = 8, LOGIN_WINDOW_MS = 15 * 60 * 1000, LOGIN_BLOCK_MS = 10 * 60 * 1000;
-const loginBloqueado = ip => { const e = loginFails.get(ip); return !!(e && e.until && e.until > Date.now()); };
+const loginBloqueado = ip => { const e = loginFails.get(ip); return !!(e?.until && e.until > Date.now()); };
 function loginFallo(ip) {
   const now = Date.now();
   let e = loginFails.get(ip);
@@ -152,7 +152,7 @@ app.get("/api/usuarios", requireAdmin, async (req, res) => {
 app.post("/api/usuarios", requireAdmin, async (req, res) => {
   const { username, nombre, password, role } = req.body || {};
   if (!username || !password) return res.status(400).json({ error: "Usuario y contraseña son obligatorios" });
-  if (!ROLES.includes(role)) return res.status(400).json({ error: "Rol inválido" });
+  if (!ROLES.has(role)) return res.status(400).json({ error: "Rol inválido" });
   if (await usuarios().findOne({ _id: username })) return res.status(409).json({ error: "Ya existe un usuario con ese nombre" });
   await usuarios().insertOne({ _id: username, nombre: nombre || "", role, passwordHash: hashPassword(password), mustChangePassword: true, creado: new Date().toISOString() });
   res.status(201).json({ ok: true });
@@ -165,7 +165,7 @@ app.put("/api/usuarios/:username", requireAdmin, async (req, res) => {
   if (nombre !== undefined) set.nombre = nombre;
   if (password) { set.passwordHash = hashPassword(password); set.mustChangePassword = true; }
   if (role !== undefined) {
-    if (!ROLES.includes(role)) return res.status(400).json({ error: "Rol inválido" });
+    if (!ROLES.has(role)) return res.status(400).json({ error: "Rol inválido" });
     if (u.role === "architect_lead" && role !== "architect_lead" && await usuarios().countDocuments({ role: "architect_lead" }) <= 1)
       return res.status(409).json({ error: "Debe quedar al menos un Architect Lead" });
     set.role = role;
@@ -187,7 +187,7 @@ app.delete("/api/usuarios/:username", requireAdmin, async (req, res) => {
 app.get("/api/config", async (req, res) => res.json(await getConfig()));
 app.put("/api/config", requireAdmin, async (req, res) => {
   const c = req.body;
-  if (!c || !c.secciones_adr || !c.secciones_rfc) return res.status(400).json({ error: "Configuración inválida" });
+  if (!c?.secciones_adr || !c.secciones_rfc) return res.status(400).json({ error: "Configuración inválida" });
   await config().updateOne({ clave: "catalogos" }, { $set: { valor: c } }, { upsert: true });
   res.json({ ok: true });
 });
@@ -203,7 +203,7 @@ async function nextId(tipo) {
   const cfg = await getConfig();
   const piso = (cfg.secuencia_inicial || { adr: 9, rfc: 7 })[tipo];
   const rows = await documentos().find({ tipo }, { projection: { _id: 1 } }).toArray();
-  const max = rows.reduce((m, r) => Math.max(m, parseInt(r._id.split("-")[1], 10) || 0), piso - 1);
+  const max = rows.reduce((m, r) => Math.max(m, Number.parseInt(r._id.split("-")[1], 10) || 0), piso - 1);
   return tipo === "adr" ? `ADR-${String(max + 1).padStart(3, "0")}` : `RFC-${String(max + 1).padStart(4, "0")}`;
 }
 
@@ -217,7 +217,7 @@ async function crearDocumentoNuevo(tipo, construir) {
       await documentos().insertOne(construir(id));
       return id;
     } catch (e) {
-      if (e && e.code === 11000 && intento < 4) continue; // duplicate key → reintenta
+      if (e?.code === 11000 && intento < 4) continue; // duplicate key → reintenta
       throw e;
     }
   }

@@ -1,0 +1,12 @@
+node_modules
+.git
+.gitignore
+.env
+.env.example
+.vscode
+.sonarlint
+docs
+*.md
+.DS_Store
+Dockerfile
+docker-compose.yml

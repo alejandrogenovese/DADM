@@ -421,7 +421,7 @@ function limpiarNodo(node){
       limpiarNodo(ch);
       const parent = ch.parentNode;
       while(ch.firstChild) parent.insertBefore(ch.firstChild, ch);
-      parent.removeChild(ch);
+      ch.remove();
     }
   });
 }
@@ -471,7 +471,7 @@ const CALLOUT = {
 };
 
 // actores (áreas/equipos) que pueden ser decisores/aprobadores — multi-select
-const ACTORES = ["Plataforma","Seguridad IDM","Célula de Modelado","Ingeniería","Advance Analytics","Gobierno","Arquitectura Data","Seguridad del Dato"];
+const ACTORES = new Set(["Plataforma","Seguridad IDM","Célula de Modelado","Ingeniería","Advance Analytics","Gobierno","Arquitectura Data","Seguridad del Dato"]);
 function actoresSel(key){ return (doc[key]||"").split("·").map(s=>s.trim()).filter(Boolean); }
 function toggleActor(key, actor){
   const sel = actoresSel(key);
@@ -487,7 +487,7 @@ function chipsActores(key){
     h += `<button type="button" class="actor-chip${sel.includes(a)?" on":""}" onclick="toggleActor('${key}','${escJs(a)}')">${a}</button>`;
   });
   // valores previos que no están en el catálogo actual (para no perder datos históricos)
-  sel.filter(a=>!ACTORES.includes(a)).forEach(a=>{
+  sel.filter(a=>!ACTORES.has(a)).forEach(a=>{
     h += `<button type="button" class="actor-chip on" onclick="toggleActor('${key}','${escJs(a)}')">${esc(a)} ✕</button>`;
   });
   h += `</div>`;
@@ -1048,7 +1048,7 @@ function posFmtbar(rect){
 }
 function onSelChange(){
   if(fmtbar().contains(document.activeElement)) return; // interactuando con la barra (ej: dropdown)
-  const sel = window.getSelection();
+  const sel = globalThis.getSelection();
   if(!sel || sel.rangeCount===0 || sel.isCollapsed){ hideFmtbar(); return; }
   const anchor = sel.anchorNode;
   const el = anchor && (anchor.nodeType===1 ? anchor : anchor.parentElement);
@@ -1062,7 +1062,7 @@ document.addEventListener("selectionchange", onSelChange);
 function restoreSelection(){
   if(!savedRange || !activeEditable) return false;
   activeEditable.focus();
-  const sel = window.getSelection();
+  const sel = globalThis.getSelection();
   sel.removeAllRanges();
   sel.addRange(savedRange);
   return true;
@@ -1070,7 +1070,7 @@ function restoreSelection(){
 function fmtCmd(cmd, val){
   if(!restoreSelection()) return;
   if(cmd==="code"){
-    const txt = window.getSelection().toString();
+    const txt = globalThis.getSelection().toString();
     if(txt) document.execCommand("insertHTML", false, "<code>"+txt.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")+"</code>");
   } else {
     document.execCommand(cmd, false, val);

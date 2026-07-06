@@ -1,6 +1,6 @@
 // DADM — autenticación: hash de contraseñas (scrypt) y token de sesión firmado (HMAC).
 // Sin dependencias externas; diseñado para reemplazarse por AD/SSO más adelante.
-const crypto = require("crypto");
+const crypto = require("node:crypto");
 
 const AUTH_SECRET = process.env.AUTH_SECRET || "dadm-dev-secret-cambiar";
 const TOKEN_TTL_S = 12 * 60 * 60; // 12 horas
@@ -12,7 +12,7 @@ function hashPassword(password) {
 }
 
 function verifyPassword(password, stored) {
-  if (!stored || !stored.includes(":")) return false;
+  if (!stored?.includes(":")) return false;
   const [salt, hash] = stored.split(":");
   const test = crypto.scryptSync(password, salt, 64).toString("hex");
   const a = Buffer.from(hash, "hex"), b = Buffer.from(test, "hex");
@@ -27,7 +27,7 @@ function signToken(payload) {
 }
 
 function verifyToken(token) {
-  if (!token || !token.includes(".")) return null;
+  if (!token?.includes(".")) return null;
   const [data, sig] = token.split(".");
   const expected = crypto.createHmac("sha256", AUTH_SECRET).update(data).digest("base64url");
   const a = Buffer.from(sig), b = Buffer.from(expected);
