@@ -4,6 +4,23 @@ Todas las modificaciones relevantes de DADM se documentan en este archivo.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/)
 y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [1.4.0] — 2026-10-18
+
+Llega **Arqui**, el asistente de DADM (estilo Clippy).
+
+### Added
+- **Arqui**, personaje flotante en la esquina inferior derecha (`public/arqui.js` + `public/arqui.css`), con el diseño de la ficha v2: capas medallion en el pecho, antena-grafo, orejas de base de datos y lápiz en la mano.
+- **Detección de decisiones sin ADR**: si en un RFC aparece lenguaje de decisión («decidimos», «vamos a usar», «migramos», «optamos por»…), Arqui ofrece crear un ADR. El ADR nuevo hereda el título y queda vinculado con `deriva_de: RFC-xxxx`; el RFC se guarda antes de saltar.
+- **Aviso de ventanas de comentarios** en el inicio (una vez por sesión), con acceso directo al primer RFC.
+- **Recordatorio de guardado** tras 5 minutos con cambios sin guardar.
+- **Menú contextual** al tocarlo: nuevo ADR/RFC, crear ADR desde el RFC abierto, guardar, y una ayuda «¿ADR o RFC?».
+- **Silenciable**: «No mostrar más» lo apaga (persistido en el navegador); se vuelve a llamar desde la entrada «Arqui» de la barra lateral.
+- Easter eggs: tocarlo con el globo abierto le cambia la cara; escribir `SELECT *` lo pone en modo query; 7 toques seguidos revelan su número de serie.
+
+### Notes
+- Módulo autocontenido que envuelve `renderHome`, `mostrarEditor`, `irHome` y `abrirVista`; no modifica la lógica del editor ni el backend. Compatible con la CSP vigente (script `'self'`).
+- Respeta `prefers-reduced-motion`, modo oscuro y se oculta en la vista imprimible.
+
 ## [1.3.0] — 2026-07-06
 
 Funcionalidades de producto (búsqueda, versiones/diff, notificaciones, modo oscuro) y endurecimiento de seguridad HTTP.

@@ -273,6 +273,7 @@
     #vista .pagina{box-shadow:none; width:auto; padding:0}
   }
 </style>
+<link rel="stylesheet" href="/arqui.css">
 <script>
   // tema (claro/oscuro) lo antes posible para evitar el flash: localStorage o preferencia del SO
   (function(){
@@ -327,7 +328,7 @@
       <button class="u-logout" onclick="abrirCambioPassword(false)" title="Cambiar contraseña">🔑</button>
       <button class="u-logout" onclick="logout()" title="Cerrar sesión">Salir</button>
     </div>
-    <div class="side-foot">DADM v1.3.0 · Banco Galicia</div>
+    <div class="side-foot">DADM v1.4.0 · Banco Galicia</div>
   </aside>
 
   <div class="main">
@@ -1879,5 +1880,6 @@ function abrirVista(){
 
 init();
 </script>
+<script src="/arqui.js"></script>
 </body>
 </html>

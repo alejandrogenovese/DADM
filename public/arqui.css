@@ -1,0 +1,62 @@
+/* =========================================================================
+   Arqui — el asistente de DADM (estilo "Clippy")
+   Personaje: robot con capas medallion en el pecho, antena-grafo, orejas
+   de base de datos y lápiz en la mano. Ver CHANGELOG 1.4.0.
+   ========================================================================= */
+:root{
+  --arqui-note:#FFF6D8;
+  --arqui-note-ink:oklch(0.15 0.010 30);
+  --arqui-line:oklch(0.15 0.010 30);
+  --arqui-body:#E3DDD5;
+  --arqui-screen:#121212;
+}
+:root[data-theme="dark"]{
+  --arqui-note:oklch(0.30 0.035 85);
+  --arqui-note-ink:oklch(0.95 0.010 80);
+  --arqui-line:oklch(0.10 0.008 30);
+}
+
+#arqui{position:fixed; right:20px; bottom:16px; z-index:150; display:flex; flex-direction:column; align-items:flex-end; gap:6px; pointer-events:none; font-family:var(--sans)}
+#arqui > *{pointer-events:auto}
+#arqui.oculto{display:none !important}
+
+/* ---- globo ---- */
+.arqui-bubble{position:relative; width:min(320px, calc(100vw - 40px)); background:var(--arqui-note); color:var(--arqui-note-ink); border:2px solid var(--arqui-line); border-radius:4px; padding:14px 16px 12px; box-shadow:4px 4px 0 var(--arqui-line); margin-right:34px; animation:arquiIn .18s ease-out}
+.arqui-bubble.oculto{display:none}
+.arqui-bubble::after{content:""; position:absolute; right:38px; bottom:-14px; width:20px; height:20px; background:var(--arqui-note); border-right:2px solid var(--arqui-line); border-bottom:2px solid var(--arqui-line); transform:rotate(45deg) skew(8deg,8deg)}
+.arqui-bubble .ab-msg{font:500 14px/1.4 var(--sans); margin-right:18px}
+.arqui-bubble .ab-msg b{font-weight:700}
+.arqui-bubble .ab-msg code{font:600 12.5px var(--mono)}
+.arqui-bubble .ab-close{position:absolute; top:6px; right:6px; width:28px; height:28px; border:0; background:transparent; color:inherit; font-size:16px; line-height:1; cursor:pointer; border-radius:4px; opacity:.7}
+.arqui-bubble .ab-close:hover{opacity:1; background:color-mix(in oklch, var(--arqui-line), transparent 88%)}
+.arqui-bubble .ab-acts{display:flex; flex-direction:column; gap:6px; margin-top:12px}
+.arqui-bubble .ab-btn{font:600 13px var(--sans); text-align:left; padding:8px 12px; min-height:36px; border:2px solid var(--arqui-line); background:var(--surface); color:var(--ink); border-radius:3px; cursor:pointer}
+.arqui-bubble .ab-btn:hover{transform:translate(-1px,-1px); box-shadow:2px 2px 0 var(--arqui-line)}
+.arqui-bubble .ab-btn.primary{background:var(--orange); color:oklch(0.15 0.010 30)}
+.arqui-bubble .ab-btn.link{border:0; background:transparent; font-weight:500; text-decoration:underline; padding:4px 2px; min-height:28px; color:inherit; opacity:.8}
+.arqui-bubble .ab-btn.link:hover{transform:none; box-shadow:none; opacity:1}
+
+/* ---- el robot ---- */
+.arqui-bot{width:84px; height:112px; border:0; padding:0; background:transparent; cursor:pointer; filter:drop-shadow(0 6px 10px oklch(0 0 0 / .18))}
+.arqui-bot:focus-visible{outline:3px solid var(--orange); outline-offset:4px; border-radius:8px}
+.arqui-bot svg{width:100%; height:100%; display:block; overflow:visible}
+.arqui-bot .bob{animation:arquiBob 3.2s ease-in-out infinite; transform-origin:center}
+.arqui-bot .pulse{animation:arquiPulse 1.6s ease-in-out infinite}
+.arqui-bot .face{display:none}
+#arqui[data-face="0"] .face-0, #arqui[data-face="1"] .face-1,
+#arqui[data-face="2"] .face-2, #arqui[data-face="3"] .face-3{display:inline}
+#arqui.hablando .arqui-bot .bob{animation:arquiHop .5s ease-out 2}
+#arqui.minimo .arqui-bot{width:56px; height:75px; opacity:.85}
+#arqui.minimo .arqui-bot:hover{opacity:1}
+
+/* botón en la barra lateral para volver a llamarlo */
+#btn-arqui.apagado{opacity:.55}
+
+@keyframes arquiBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes arquiHop{0%{transform:translateY(0)}40%{transform:translateY(-14px) rotate(-3deg)}100%{transform:translateY(0)}}
+@keyframes arquiPulse{0%,100%{opacity:1}50%{opacity:.45}}
+@keyframes arquiIn{from{opacity:0; transform:translateY(6px) scale(.98)}to{opacity:1; transform:none}}
+@media (prefers-reduced-motion: reduce){
+  .arqui-bot .bob, .arqui-bot .pulse, #arqui.hablando .arqui-bot .bob, .arqui-bubble{animation:none}
+}
+@media print{ #arqui{display:none !important} }
